@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/bracket-fix.yml'
+      - '.github/scripts/fix_brackets.py'
 
 permissions:
   contents: write
