@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Balloon Word Problem Adventure</title>
+<style>
+:root{
+  --blue:#2b86d1;
+  --deep:#12496f;
+  --sky:#f7fbff;
+  --ink:#21384c;
+  --line:#cfe4f3;
+  --p1:#4a90e2;
+  --p2:#ef6461;
+  --good:#188a4a;
+  --bad:#c64343;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;height:100%;overflow:hidden;
+  font-family:"Trebuchet MS","Arial Rounded MT Bold",Arial,sans-serif;
+  background:linear-gradient(#eef9ff,#ffffff);
+  color:var(--ink);
+}
+body{padding:8px}
+button,input{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+.app{
+  max-width:1450px;height:calc(100vh - 16px);margin:auto;
+  border:2px solid #d7e9f6;border-radius:28px;background:#fff;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(65,128,170,.12);
+}
+header{
+  background:var(--blue);color:#fff;padding:10px 16px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px
+}
+header h1{margin:0;font-size:clamp(24px,2.8vw,40px)}
+header .sub{font-size:12px;line-height:1.3;text-align:right}
+main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
+.screen{display:none;height:100%}
+.screen.active{display:flex}
+.card{
+  border:2px solid var(--line);border-radius:22px;background:#fff;
+  box-shadow:0 6px 16px rgba(77,143,181,.08)
+}
+.hidden{display:none!important}
+
+/* home */
+#home{align-items:stretch}
+.homeGrid{
+  flex:1;display:grid;grid-template-columns:1.04fr .96fr;gap:10px;min-height:0
+}
+.intro,.preview{padding:18px;overflow:hidden}
+.intro h2{margin:0;color:var(--deep);font-size:clamp(30px,4.5vw,56px);line-height:1.04}
+.intro p{font-size:clamp(15px,1.75vw,22px);line-height:1.45;margin:10px 0}
+.modeRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.modeBtn{
+  border:0;border-radius:18px;color:#fff;padding:18px 10px;
+  font-size:clamp(20px,2.2vw,28px);font-weight:900;box-shadow:0 6px 0 #0002
+}
+.modeBtn.one{background:var(--p1)}
+.modeBtn.two{background:linear-gradient(90deg,var(--p1) 50%,var(--p2) 50%)}
+.modeBtn:active{transform:translateY(3px);box-shadow:0 3px 0 #0002}
+.preview{
+  background:linear-gradient(150deg,#fff,#eef9ff)
+}
+.preview h3{margin:0 0 10px;color:var(--deep);font-size:clamp(22px,2.4vw,30px)}
+.preview ul{margin:0 0 10px 20px;padding:0;font-size:clamp(14px,1.5vw,18px);line-height:1.5}
+.previewArt{
+  height:240px;border:2px solid #d9edf8;border-radius:20px;background:#f8fdff;
+  overflow:hidden;display:flex;align-items:center;justify-content:center
+}
+.note{font-size:12px;color:#6b7f90;text-align:center;margin-top:8px;line-height:1.32}
+
+/* game */
+#game{flex-direction:column;gap:7px}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.btnRow{display:flex;gap:8px;flex-wrap:wrap}
+.smallbtn{
+  border:0;background:#eaf6ff;color:#075f9f;border-radius:11px;padding:8px 12px;
+  font-weight:900;font-size:14px
+}
+.statusline{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.score{padding:8px 12px;border:2px solid #dceeff;border-radius:13px;background:#fff;font-weight:900}
+.score.p1{border-color:#b8d6ff}
+.score.p2{border-color:#ffc1bf;text-align:right}
+.round{text-align:center;color:#607284;font-weight:900}
+.progress{height:8px;background:#e9f3f9;border-radius:999px;overflow:hidden}
+.progress div{height:100%;background:var(--blue);width:0;transition:.25s}
+.gameGrid{
+  flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);gap:8px
+}
+.questionCard,.raceCard{
+  min-height:0;padding:10px;display:flex;flex-direction:column;overflow:hidden
+}
+.badges{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{padding:6px 12px;border-radius:999px;font-weight:900;background:#eaf7ff;color:#0767aa}
+.turn.p1{background:#edf5ff;color:#3372bc;border:2px solid #bfd8ff}
+.turn.p2{background:#fff0ef;color:#b9413d;border:2px solid #ffc3c0}
+#questionTitle{
+  text-align:center;font-weight:900;font-size:clamp(20px,2.2vw,31px);line-height:1.15;
+  margin:8px 0 6px
+}
+.story{
+  text-align:center;font-size:clamp(15px,1.55vw,20px);line-height:1.35;
+  max-width:98%;align-self:center
+}
+.workArea{
+  flex:1;min-height:0;border:2px solid #d9edfa;border-radius:18px;background:#fbfeff;
+  padding:10px;overflow:auto;margin-top:8px
+}
+.workArea::-webkit-scrollbar{width:10px}
+.workArea::-webkit-scrollbar-thumb{background:#d3e7f5;border-radius:999px}
+.svgWrap{display:flex;justify-content:center;align-items:center;margin-bottom:6px}
+.mathBlock{
+  display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-start
+}
+.sectionTag{
+  background:#e8f7ef;color:#0d7443;border-radius:12px;padding:5px 12px;font-weight:900
+}
+.eqLine{
+  display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;
+  font-size:clamp(18px,1.9vw,27px);font-weight:900;line-height:1.15
+}
+.mathStack{
+  display:inline-flex;flex-direction:column;align-items:flex-start;gap:8px
+}
+.mathStack .eqLine{justify-content:flex-start;flex-wrap:nowrap}
+.eqPrefix{
+  display:inline-block;width:38px;text-align:right;flex:0 0 38px
+}
+.answerInput{
+  width:98px;height:44px;border:3px solid #b6d8f0;border-radius:14px;background:#fff;
+  text-align:center;font-weight:900;font-size:clamp(17px,1.9vw,27px);color:var(--ink)
+}
+.answerInput.small{width:78px}
+.answerInput.tiny{width:64px}
+.answerInput.correct{border-color:var(--good);background:#edf9f2;color:#08743a}
+.answerInput.wrong{border-color:var(--bad);background:#fff1f1;color:#b33030}
+.actions{display:flex;justify-content:center;gap:10px;margin-top:8px}
+.action{
+  border:0;border-radius:13px;padding:9px 18px;background:var(--blue);color:#fff;
+  font-weight:900;font-size:18px
+}
+.action.alt{background:#6d80a6}
+.feedback{text-align:center;min-height:26px;font-weight:900;font-size:18px;margin-top:6px}
+.explain{text-align:center;min-height:34px;color:#637486;font-size:14px;line-height:1.35}
+
+/* scene */
+.raceTitle{
+  align-self:center;font-weight:900;font-size:clamp(18px,2vw,24px);
+  padding:6px 12px;border-radius:999px;background:#eaf7ff;color:#0c5c92
+}
+.raceStage{
+  flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+  border-radius:18px;overflow:hidden;background:#f8fdff;margin-top:8px
+}
+.raceSvg{width:100%;height:100%}
+.raceNote{text-align:center;font-weight:900;font-size:18px;min-height:26px;margin-top:6px;color:#5a6c7a}
+
+/* results */
+#results{align-items:center;justify-content:center}
+.results{width:min(700px,100%);padding:28px;text-align:center}
+.results h2{margin:0 0 10px;color:var(--deep);font-size:clamp(30px,4vw,50px)}
+.results p{font-size:clamp(18px,2vw,23px);line-height:1.45}
+.bigbtn{border:0;border-radius:14px;padding:12px 20px;margin:5px;background:var(--blue);color:#fff;font-size:19px;font-weight:900}
+.gold{background:#d99b16}
+
+@media(max-width:1150px){
+  .homeGrid{grid-template-columns:1fr}
+  .preview{display:none}
+  .gameGrid{grid-template-columns:1fr;grid-template-rows:minmax(0,1.18fr) minmax(220px,.82fr)}
+}
+@media(max-width:720px){
+  body{padding:0}.app{height:100vh;border-radius:0}
+  header{padding:8px 10px}
+  main{padding:8px}
+  .answerInput{width:84px;height:40px}
+  .answerInput.small{width:70px}
+  .answerInput.tiny{width:58px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>🎈 Balloon Word Problem Adventure</h1>
+  <div class="sub">1 Player or 2 Players • friendly game<br>word problems • bar models • multi-step thinking</div>
+</header>
+
+<main>
+<section id="home" class="screen active">
+  <div class="homeGrid">
+    <div class="card intro">
+      <h2>Up, up and solve!</h2>
+      <p>Answer multi-step word problems based on the worksheet examples.</p>
+      <p>You will see friendly variations of these question types:</p>
+      <p>• two-step subtraction and finding what is left<br>
+         • equally sharing after taking some away<br>
+         • units, totals and converting to litres and millilitres<br>
+         • mass left from equal bags<br>
+         • “times as much” and finding the difference</p>
+
+      <div class="modeRow">
+        <button class="modeBtn one" onclick="startGame(1)">👤 1 Player</button>
+        <button class="modeBtn two" onclick="startGame(2)">👥 2 Players</button>
+      </div>
+
+      <div class="note">
+        Correct answers help your balloon float higher.<br>
+        Wrong answers keep the balloon where it is.
+      </div>
+    </div>
+
+    <div class="card preview">
+      <h3>Balloon meadow preview</h3>
+      <ul>
+        <li>10 questions in a game</li>
+        <li>1-player or 2-player turns</li>
+        <li>Fill in the blanks just like the worksheets</li>
+        <li>Friendly balloon race graphic</li>
+      </ul>
+      <div class="previewArt" id="previewArt"></div>
+    </div>
+  </div>
+</section>
+
+<section id="game" class="screen">
+  <div class="controls">
+    <div class="btnRow">
+      <button class="smallbtn" onclick="goHome()">← Home</button>
+      <button class="smallbtn" onclick="restart()">↻ New Game</button>
+    </div>
+    <button class="smallbtn" id="soundBtn" onclick="toggleSound()">🔊 Sound On</button>
+  </div>
+
+  <div class="statusline">
+    <div class="score p1" id="score1">Player 1: 0</div>
+    <div class="round" id="round">1 / 10</div>
+    <div class="score p2" id="score2">Player 2: 0</div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+
+  <div class="gameGrid">
+    <div class="card questionCard">
+      <div class="badges">
+        <div class="badge" id="typeBadge">Solve the word problem</div>
+        <div class="badge turn p1" id="turnBanner">👤 Your Turn</div>
+      </div>
+
+      <div id="questionTitle">Solve the problem.</div>
+      <div class="story" id="storyText"></div>
+
+      <div class="workArea">
+        <div id="questionContent"></div>
+      </div>
+
+      <div class="actions">
+        <button id="checkBtn" class="action" onclick="checkAnswer()">Check Answer</button>
+        <button id="nextBtn" class="action alt hidden" onclick="nextQuestion()">Next →</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="explain" id="explain"></div>
+    </div>
+
+    <div class="card raceCard">
+      <div class="raceTitle">Balloon Meadow</div>
+      <div class="raceStage">
+        <svg class="raceSvg" viewBox="0 0 560 360" aria-label="balloon race scene">
+          <defs>
+            <linearGradient id="skyG" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#cfeeff"/>
+              <stop offset="1" stop-color="#eefbff"/>
+            </linearGradient>
+            <linearGradient id="grassG" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#9dd67a"/>
+              <stop offset="1" stop-color="#7bc45d"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="560" height="360" fill="url(#skyG)"/>
+          <rect x="0" y="300" width="560" height="60" fill="url(#grassG)"/>
+
+          <g fill="#fff" opacity=".95">
+            <ellipse cx="120" cy="60" rx="36" ry="20"/>
+            <ellipse cx="148" cy="58" rx="30" ry="17"/>
+            <ellipse cx="365" cy="78" rx="40" ry="22"/>
+            <ellipse cx="395" cy="76" rx="32" ry="18"/>
+            <ellipse cx="438" cy="42" rx="30" ry="18"/>
+            <ellipse cx="460" cy="40" rx="24" ry="15"/>
+          </g>
+
+          <text x="30" y="35" font-size="22" font-weight="900" fill="#2f6ba8">Player 1</text>
+          <text x="415" y="35" font-size="22" font-weight="900" fill="#c94646">Player 2</text>
+          <text x="245" y="28" font-size="19" font-weight="900" fill="#1f5b93">FINISH CLOUDS</text>
+
+          <line x1="145" y1="300" x2="145" y2="40" stroke="#7bb0d6" stroke-dasharray="8 8" stroke-width="3" opacity=".7"/>
+          <line x1="415" y1="300" x2="415" y2="40" stroke="#e3a0a0" stroke-dasharray="8 8" stroke-width="3" opacity=".7"/>
+
+          <g id="balloon1" transform="translate(145 268)">
+            <path d="M0 -50 C35 -50 40 -12 0 12 C-40 -12 -35 -50 0 -50 Z" fill="#68b0ff" stroke="#fff" stroke-width="4"/>
+            <path d="M-14 18 L14 18 L10 36 L-10 36 Z" fill="#ba7b43" stroke="#7d5127" stroke-width="3"/>
+            <line x1="-12" y1="12" x2="-8" y2="20" stroke="#7d5127" stroke-width="3"/>
+            <line x1="12" y1="12" x2="8" y2="20" stroke="#7d5127" stroke-width="3"/>
+            <rect x="-20" y="-36" width="40" height="10" fill="#fff" opacity=".34"/>
+          </g>
+
+          <g id="balloon2" transform="translate(415 268)">
+            <path d="M0 -50 C35 -50 40 -12 0 12 C-40 -12 -35 -50 0 -50 Z" fill="#ff8d8d" stroke="#fff" stroke-width="4"/>
+            <path d="M-14 18 L14 18 L10 36 L-10 36 Z" fill="#ba7b43" stroke="#7d5127" stroke-width="3"/>
+            <line x1="-12" y1="12" x2="-8" y2="20" stroke="#7d5127" stroke-width="3"/>
+            <line x1="12" y1="12" x2="8" y2="20" stroke="#7d5127" stroke-width="3"/>
+            <rect x="-20" y="-36" width="40" height="10" fill="#fff" opacity=".34"/>
+          </g>
+
+          <g id="spark1" opacity="0">
+            <circle cx="0" cy="0" r="5" fill="#ffd75f"/>
+            <circle cx="-12" cy="8" r="3" fill="#ffb347"/>
+            <circle cx="10" cy="10" r="3" fill="#ffe98a"/>
+          </g>
+          <g id="spark2" opacity="0">
+            <circle cx="0" cy="0" r="5" fill="#ffd75f"/>
+            <circle cx="-12" cy="8" r="3" fill="#ffb347"/>
+            <circle cx="10" cy="10" r="3" fill="#ffe98a"/>
+          </g>
+
+          <text x="26" y="338" font-size="18" font-weight="900" fill="#2f6ba8">Score:</text>
+          <text x="390" y="338" font-size="18" font-weight="900" fill="#c94646">Score:</text>
+          <text id="sceneScore1" x="86" y="338" font-size="24" font-weight="900" fill="#2f6ba8">0</text>
+          <text id="sceneScore2" x="450" y="338" font-size="24" font-weight="900" fill="#c94646">0</text>
+        </svg>
+      </div>
+      <div class="raceNote" id="raceNote">Ready to float higher!</div>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="screen">
+  <div class="card results">
+    <h2 id="resultTitle">Adventure Complete!</h2>
+    <p id="resultText"></p>
+    <button class="bigbtn" onclick="restart()">Play Again</button>
+    <button class="bigbtn gold" onclick="goHome()">Choose Mode</button>
+  </div>
+</section>
+</main>
+</div>
+
+<script>
+const TOTAL = 10;
+let mode = 1;
+let round = 0;
+let currentPlayer = 0;
+let scores = [0,0];
+let questions = [];
+let answered = false;
+let soundOn = true;
+let audioCtx = null;
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+function input(id, cls=''){
+  const add = cls ? ' ' + cls : '';
+  return `<input id="${id}" class="answerInput${add}" inputmode="numeric" autocomplete="off">`;
+}
+
+/* sound */
+function initAudio(){
+  if(audioCtx) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(Ctx) audioCtx = new Ctx();
+}
+function tone(freq,dur=.1,type="triangle",vol=.04,delay=0){
+  if(!soundOn) return;
+  initAudio(); if(!audioCtx) return;
+  const t=audioCtx.currentTime+delay;
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(audioCtx.destination);
+  o.start(t); o.stop(t+dur+.03);
+}
+function correctSound(){ tone(660,.08); tone(900,.12,"triangle",.045,.09); tone(1080,.14,"triangle",.035,.18); }
+function wrongSound(){ tone(220,.12,"sawtooth",.045); tone(170,.18,"sawtooth",.035,.11); }
+function cheerSound(){ tone(520,.07,"square",.03); tone(700,.09,"triangle",.04,.08); }
+function toggleSound(){
+  soundOn=!soundOn;
+  document.getElementById("soundBtn").textContent = soundOn ? "🔊 Sound On" : "🔇 Sound Off";
+}
+
+/* scene */
+function setBalloonPositions(){
+  const maxScore = mode===2 ? Math.ceil(TOTAL/2) : TOTAL;
+  const startY = 268, endY = 90;
+  const y1 = startY - (scores[0]/maxScore)*(startY-endY);
+  const y2 = startY - (scores[1]/maxScore)*(startY-endY);
+
+  const b1 = document.getElementById("balloon1");
+  const b2 = document.getElementById("balloon2");
+  b1.setAttribute("transform", `translate(145 ${y1})`);
+  b2.setAttribute("transform", `translate(415 ${y2})`);
+  b2.style.display = mode===2 ? "" : "none";
+  document.querySelector('.raceSvg text[x="415"][y="35"]').style.display = mode===2 ? "" : "none";
+  document.querySelector('.raceSvg line[x1="415"]').style.display = mode===2 ? "" : "none";
+  document.getElementById("sceneScore2").style.display = mode===2 ? "" : "none";
+  document.querySelector('.raceSvg text[x="390"][y="338"]').style.display = mode===2 ? "" : "none";
+  document.getElementById("sceneScore1").textContent = scores[0];
+  document.getElementById("sceneScore2").textContent = scores[1];
+}
+function balloonRise(player){
+  correctSound(); cheerSound();
+  const maxScore = mode===2 ? Math.ceil(TOTAL/2) : TOTAL;
+  const startY = 268, endY = 90;
+  const prevScore = scores[player]-1;
+  const y0 = startY - (prevScore/maxScore)*(startY-endY);
+  const y1 = startY - (scores[player]/maxScore)*(startY-endY);
+  const x = player===0 ? 145 : 415;
+  const balloon = document.getElementById(player===0 ? "balloon1" : "balloon2");
+  const spark = document.getElementById(player===0 ? "spark1" : "spark2");
+  spark.setAttribute("transform", `translate(${x} ${y0-62})`);
+  spark.animate([{opacity:0},{opacity:1,offset:.22},{opacity:0}], {duration:650, easing:"ease-out"});
+  balloon.animate([
+    {transform:`translate(${x}px,${y0}px)`},
+    {transform:`translate(${x}px,${y1-10}px)`, offset:.72},
+    {transform:`translate(${x}px,${y1}px)`}
+  ], {duration:760,easing:"ease-in-out",fill:"forwards"});
+  document.getElementById("raceNote").textContent = player===0 ? "🎈 Player 1 floats higher!" : "🎈 Player 2 floats higher!";
+}
+function balloonStay(player){
+  wrongSound();
+  const balloon = document.getElementById(player===0 ? "balloon1" : "balloon2");
+  const cur = balloon.getAttribute("transform").match(/translate\(([-\d.]+) ([-\d.]+)\)/);
+  const x = Number(cur[1]), y = Number(cur[2]);
+  balloon.animate([
+    {transform:`translate(${x}px,${y}px)`},
+    {transform:`translate(${x-5}px,${y+4}px)`, offset:.25},
+    {transform:`translate(${x+5}px,${y-4}px)`, offset:.6},
+    {transform:`translate(${x}px,${y}px)`}
+  ], {duration:420,easing:"ease-in-out"});
+  document.getElementById("raceNote").textContent = player===0 ? "☁️ Player 1 stays at the same height." : "☁️ Player 2 stays at the same height.";
+}
+
+/* svg bar models */
+function svgCombineTwo(a,b,unit){
+  const total = a+b;
+  const scale = 260 / total;
+  const aW = a*scale, bW = b*scale;
+  return `<svg viewBox="0 0 430 130" style="width:100%;max-width:430px;height:130px">
+    <text x="18" y="22" font-size="16" font-weight="900">(i)</text>
+    <rect x="90" y="42" width="${aW}" height="28" fill="#8ebbe5" stroke="#222" stroke-width="2"/>
+    <rect x="${90+aW}" y="42" width="${bW}" height="28" fill="#e8a8a1" stroke="#222" stroke-width="2"/>
+    <path d="M90 36 v-8 h${aW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${90+aW} 36 v-8 h${bW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M90 76 v8 h${aW+bW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${90+aW/2}" y="24" text-anchor="middle" font-size="17" font-weight="900">${a} ${unit}</text>
+    <text x="${90+aW+bW/2}" y="24" text-anchor="middle" font-size="17" font-weight="900">${b} ${unit}</text>
+    <text x="${90+(aW+bW)/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+function svgTotalMinusUsed(total, used, unit){
+  const left = total-used;
+  const scale = 320/total;
+  const usedW = used*scale, leftW = left*scale;
+  return `<svg viewBox="0 0 470 130" style="width:100%;max-width:470px;height:130px">
+    <text x="18" y="22" font-size="16" font-weight="900">(ii)</text>
+    <rect x="80" y="42" width="${usedW}" height="28" fill="#8ebbe5" stroke="#222" stroke-width="2"/>
+    <rect x="${80+usedW}" y="42" width="${leftW}" height="28" fill="#e7df66" stroke="#222" stroke-width="2"/>
+    <path d="M80 36 v-8 h${usedW+leftW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 76 v8 h${usedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${80+usedW} 76 v8 h${leftW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+(usedW+leftW)/2}" y="24" text-anchor="middle" font-size="18" font-weight="900">${total} ${unit}</text>
+    <text x="${80+usedW/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">${used}</text>
+    <text x="${80+usedW+leftW/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+function svgPackets(total, used, packets, unit){
+  const packed = total-used;
+  const scale = 300/total;
+  const packedW = packed*scale, usedW = used*scale;
+  const unitW = packedW/packets;
+  let divs = '';
+  for(let i=1;i<packets;i++){
+    divs += `<line x1="${80+unitW*i}" y1="128" x2="${80+unitW*i}" y2="156" stroke="#222" stroke-dasharray="4 4"/>`;
+  }
+  return `<svg viewBox="0 0 470 210" style="width:100%;max-width:470px;height:210px">
+    <rect x="80" y="34" width="${packedW}" height="28" fill="#efe369" stroke="#222" stroke-width="2"/>
+    <rect x="${80+packedW}" y="34" width="${usedW}" height="28" fill="#f7ae2b" stroke="#222" stroke-width="2"/>
+    <path d="M80 28 v-8 h${packedW+usedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 68 v8 h${packedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${80+packedW} 68 v8 h${usedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+(packedW+usedW)/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${total} ${unit}</text>
+    <text x="${80+packedW/2}" y="94" text-anchor="middle" font-size="18" font-weight="900">?</text>
+    <text x="${80+packedW+usedW/2}" y="94" text-anchor="middle" font-size="18" font-weight="900">${used} ${unit}</text>
+
+    <rect x="80" y="128" width="${packedW}" height="28" fill="#efe369" stroke="#222" stroke-width="2"/>
+    ${divs}
+    <path d="M80 104 v-8 h${packedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+packedW/2}" y="114" text-anchor="middle" font-size="18" font-weight="900">packed into ${packets}</text>
+    <path d="M80 162 v8 h${unitW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+unitW/2}" y="186" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+function svgUnitsAndTotal(unit, n, other, person1){
+  const total = unit*n + other;
+  const unitW = 55;
+  let topUnits = '';
+  for(let i=0;i<n;i++){
+    topUnits += `<rect x="${80+i*unitW}" y="34" width="${unitW}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/>`;
+    if(i>0) topUnits += `<line x1="${80+i*unitW}" y1="34" x2="${80+i*unitW}" y2="62" stroke="#222" stroke-dasharray="4 4"/>`;
+  }
+  const firstW = unitW*n;
+  const scale = 270/total;
+  const p1W = person1*scale, p2W = other*scale;
+  return `<svg viewBox="0 0 480 220" style="width:100%;max-width:480px;height:220px">
+    ${topUnits}
+    <path d="M80 28 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 68 v8 h${firstW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+unitW/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${unit} ml</text>
+    <text x="${80+firstW/2}" y="92" text-anchor="middle" font-size="18" font-weight="900">?</text>
+
+    <rect x="80" y="146" width="${p1W}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/>
+    <rect x="${80+p1W}" y="146" width="${p2W}" height="28" fill="#9ec6ea" stroke="#222" stroke-width="2"/>
+    <path d="M80 140 v-8 h${p1W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${80+p1W} 140 v-8 h${p2W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 178 v8 h${p1W+p2W} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+p1W/2}" y="138" text-anchor="middle" font-size="16" font-weight="900">${person1}</text>
+    <text x="${80+p1W+p2W/2}" y="138" text-anchor="middle" font-size="16" font-weight="900">${other} ml</text>
+    <text x="${80+(p1W+p2W)/2}" y="204" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+function svgBags(totalBags, given, unit){
+  const left = totalBags-given;
+  const unitW = 42;
+  let units = '';
+  for(let i=0;i<totalBags;i++){
+    units += `<rect x="${75+i*unitW}" y="40" width="${unitW}" height="28" fill="#ec8eb2" stroke="#222" stroke-width="2"/>`;
+    if(i>0) units += `<line x1="${75+i*unitW}" y1="40" x2="${75+i*unitW}" y2="68" stroke="#222" stroke-dasharray="4 4"/>`;
+  }
+  return `<svg viewBox="0 0 470 150" style="width:100%;max-width:470px;height:150px">
+    ${units}
+    <path d="M75 34 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M75 74 v8 h${unitW*given} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${75+unitW*given} 74 v8 h${unitW*left} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${75+unitW/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${unit} g</text>
+    <text x="${75+unitW*given/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">given away</text>
+    <text x="${75+unitW*given+unitW*left/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+function svgTimes(total, factor){
+  const unitW = 72;
+  let topUnits = '';
+  for(let i=0;i<factor;i++){
+    topUnits += `<rect x="${120+i*unitW}" y="34" width="${unitW}" height="28" fill="#8ebbe5" stroke="#222" stroke-width="2"/>`;
+    if(i>0) topUnits += `<line x1="${120+i*unitW}" y1="34" x2="${120+i*unitW}" y2="62" stroke="#222" stroke-dasharray="4 4"/>`;
+  }
+  return `<svg viewBox="0 0 520 145" style="width:100%;max-width:520px;height:145px">
+    <text x="48" y="52" font-size="18" font-weight="900">A</text>
+    <text x="48" y="100" font-size="18" font-weight="900">B</text>
+    ${topUnits}
+    <rect x="120" y="82" width="${unitW}" height="28" fill="#f0ae3c" stroke="#222" stroke-width="2"/>
+    <path d="M120 28 v-8 h${unitW*factor} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${120+unitW} 68 v8 h${unitW*(factor-1)} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${120+unitW*factor/2}" y="18" text-anchor="middle" font-size="18" font-weight="900">${total}</text>
+    <text x="${120+unitW+(unitW*(factor-1))/2}" y="92" text-anchor="middle" font-size="18" font-weight="900">?</text>
+  </svg>`;
+}
+
+/* question generators */
+function qMilkLeft(){
+  const people = ["Ahmad","Sarah","Mia","Noah","Aisha","Ben"];
+  const liquids = ["milk","juice","water","soy milk"];
+  const person = pick(people);
+  const liquid = pick(liquids);
+  const total = pick([2000,2500,3000,3200,3600,4000]);
+  const a = pick([200,250,300,350,400,450,500,550,600]);
+  const b = pick([225,250,300,350,400,450,500,600,725]);
+  if(a+b >= total) return qMilkLeft();
+  const drank = a+b, left = total-drank;
+  return {
+    type:"Two-step: drank and left",
+    title:`How much ${liquid} was drunk and left?`,
+    story:`${person} bought <b>${total} ml</b> of ${liquid}. ${person} drank <b>${a} ml</b> on Saturday and <b>${b} ml</b> on Sunday.<br>(i) How much did ${person} drink over the two days?<br>(ii) What was the volume of ${liquid} left after the two days?`,
+    render:()=>`
+      <div class="svgWrap">${svgCombineTwo(a,b,'ml')}</div>
+      <div class="mathBlock">
+        <div class="sectionTag">(i) Total drunk</div>
+        <div class="eqLine">${input('a1','small')} <span>+</span> ${input('a2','small')} <span>=</span> ${input('a3')}</div>
+        <div class="eqLine">${person} drank ${input('a4')} <span>ml of ${liquid} over the two days.</span></div>
+        <div class="svgWrap">${svgTotalMinusUsed(total,drank,'ml')}</div>
+        <div class="sectionTag">(ii) Volume left</div>
+        <div class="eqLine">${input('a5')} <span>−</span> ${input('a6')} <span>=</span> ${input('a7')}</div>
+        <div class="eqLine">${input('a8')} <span>ml of ${liquid} was left after the two days.</span></div>
+      </div>
+    `,
+    expected:{a1:a,a2:b,a3:drank,a4:drank,a5:total,a6:drank,a7:left,a8:left},
+    fields:["a1","a2","a3","a4","a5","a6","a7","a8"],
+    commutativePairs:[["a1","a2"]],
+    explain:`${a} + ${b} = ${drank}. Then ${total} − ${drank} = ${left}.`
+  };
+}
+function qPackets(){
+  const people=["Tom","Siti","Ryan","Mia","Ethan","Aisha"];
+  const foods=["almonds","raisins","biscuits","beans","nuts"];
+  const person=pick(people), food=pick(foods);
+  const packets=pick([2,3,4,5]);
+  const each=pick([100,150,200,250,300]);
+  const packed=packets*each;
+  const used=pick([100,150,200,250,300,400]);
+  const total=packed+used;
+  return {
+    type:"Packed equally into packets",
+    title:`How much went into each packet?`,
+    story:`${person} had <b>${total} g</b> of ${food}. ${person} packed some ${food} equally into <b>${packets}</b> packets and used the remaining <b>${used} g</b> of ${food}. What mass of ${food} did ${person} pack into each packet?`,
+    render:()=>`
+      <div class="svgWrap">${svgPackets(total,used,packets,'g')}</div>
+      <div class="mathBlock">
+        <div class="sectionTag">Find how much was packed</div>
+        <div class="eqLine">${input('b1')} <span>−</span> ${input('b2')} <span>=</span> ${input('b3')}</div>
+        <div class="eqLine">${person} packed ${input('b4')} <span>g of ${food}.</span></div>
+        <div class="sectionTag">Find each packet</div>
+        <div class="eqLine">${input('b5')} <span>÷</span> ${input('b6','tiny')} <span>=</span> ${input('b7')}</div>
+        <div class="eqLine">${person} packed ${input('b8')} <span>g of ${food} into each packet.</span></div>
+      </div>
+    `,
+    expected:{b1:total,b2:used,b3:packed,b4:packed,b5:packed,b6:packets,b7:each,b8:each},
+    fields:["b1","b2","b3","b4","b5","b6","b7","b8"],
+    explain:`${total} − ${used} = ${packed}. Then ${packed} ÷ ${packets} = ${each}.`
+  };
+}
+function qBottlesTotal(){
+  const names1=["Fazlee","Aisha","Mia","Noah","Sarah","Irfan"];
+  const names2=["Gopal","Ryan","Ben","Lina","Ethan","Hana"];
+  const p1=pick(names1), p2=pick(names2);
+  const each=pick([200,250,500]);
+  const bottles=pick([2,3,4,5]);
+  const first = each*bottles;
+  const second = pick([600,750,800,900,1000,1200,1300,1500,1800]);
+  const total = first + second;
+  const litres = Math.floor(total/1000), ml = total%1000;
+  return {
+    type:"Units and total in l and ml",
+    title:`How much do They drink in total?`,
+    story:`There are <b>${each} ml</b> of water in each bottle. ${p1} drinks <b>${bottles}</b> bottles of water. ${p2} drinks <b>${second} ml</b> of water. How much water do They drink in total? Give your answer in litres and millilitres.`,
+    render:()=>`
+      <div class="svgWrap">${svgUnitsAndTotal(each,bottles,second,first)}</div>
+      <div class="mathBlock">
+        <div class="sectionTag">First find ${p1}'s total</div>
+        <div class="eqLine">${bottles} <span>units =</span> ${input('c1','small')} <span>×</span> ${input('c2','small')} <span>=</span> ${input('c3')}</div>
+        <div class="eqLine">${p1} drinks ${input('c4')} <span>ml of water.</span></div>
+        <div class="sectionTag">Then find the total</div>
+        <div class="eqLine">${input('c5')} <span>+</span> ${input('c6')} <span>=</span> ${input('c7')}</div>
+        <div class="mathStack">
+          <div class="eqLine"><span class="eqPrefix"></span>${input('c8')} <span>ml =</span> ${input('c9','tiny')} <span>l</span> ${input('c10','small')} <span>ml</span></div>
+        </div>
+        <div class="eqLine">They drink ${input('c11','tiny')} <span>l</span> ${input('c12','small')} <span>ml of water in total.</span></div>
+      </div>
+    `,
+    expected:{c1:bottles,c2:each,c3:first,c4:first,c5:first,c6:second,c7:total,c8:total,c9:litres,c10:ml,c11:litres,c12:ml},
+    fields:["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12"],
+    commutativePairs:[["c1","c2"],["c5","c6"]],
+    explain:`${bottles} × ${each} = ${first}. Then ${first} + ${second} = ${total}, which is ${litres} l ${ml} ml.`
+  };
+}
+function qBagsLeft(){
+  const people=["Hassan","Andy","Siti","Mia","Noah","Ryan"];
+  const items=["flour","rice","sugar","beans"];
+  const person=pick(people), item=pick(items);
+  const totalBags=pick([6,7,8,9]);
+  const given=pick([2,3,4,5]);
+  if(given>=totalBags) return qBagsLeft();
+  const leftBags=totalBags-given;
+  const unit=pick([200,250,400,500,800]);
+  const totalLeft=leftBags*unit;
+  return {
+    type:"Equal bags left",
+    title:`How much mass was left?`,
+    story:`${person} had <b>${totalBags}</b> bags of ${item}. Each bag of ${item} had a mass of <b>${unit} g</b>. ${person} gave away <b>${given}</b> bags of ${item}. How much ${item} did ${person} have left?`,
+    render:()=>`
+      <div class="svgWrap">${svgBags(totalBags,given,unit)}</div>
+      <div class="mathBlock">
+        <div class="sectionTag">Find how many bags were left</div>
+        <div class="eqLine">${input('d1','tiny')} <span>−</span> ${input('d2','tiny')} <span>=</span> ${input('d3','tiny')}</div>
+        <div class="eqLine">${person} had ${input('d4','tiny')} <span>bags of ${item} left.</span></div>
+        <div class="sectionTag">Find the mass left</div>
+        <div class="eqLine">1 unit = ${input('d5')} <span>g</span></div>
+        <div class="eqLine">${input('d6','tiny')} <span>units =</span> ${input('d7')} <span>×</span> ${input('d8','tiny')} <span>=</span> ${input('d9')}</div>
+        <div class="eqLine">He had ${input('d10')} <span>g of ${item} left.</span></div>
+      </div>
+    `,
+    expected:{d1:totalBags,d2:given,d3:leftBags,d4:leftBags,d5:unit,d6:leftBags,d7:unit,d8:leftBags,d9:totalLeft,d10:totalLeft},
+    fields:["d1","d2","d3","d4","d5","d6","d7","d8","d9","d10"],
+    commutativePairs:[["d7","d8"]],
+    explain:`${totalBags} − ${given} = ${leftBags}. Then ${leftBags} × ${unit} = ${totalLeft}.`
+  };
+}
+function qTimesDifference(){
+  const peopleA=["Andy","Sarah","Mia","Ryan","Aisha","Noah"];
+  const peopleB=["Michael","Ben","Tom","Lina","Hana","Ethan"];
+  const pa=pick(peopleA), pb=pick(peopleB);
+  const factor=pick([2,3,4]);
+  const unit=pick([8,9,10,12,15,18,20]);
+  const total = factor*unit;
+  const diffUnits = factor-1;
+  const diff = total - unit;
+  const unitWord = pick(["km","m"]);
+  return {
+    type:"Times as much and difference",
+    title:`How much further?`,
+    story:`${pa} travelled <b>${total} ${unitWord}</b>. ${pa} travelled <b>${factor}</b> times as much as ${pb}. How much further did ${pa} travel than ${pb}?`,
+    render:()=>`
+      <div class="svgWrap">${svgTimes(total,factor)}</div>
+      <div class="mathBlock">
+        <div class="sectionTag">Find 1 unit</div>
+        <div class="eqLine">${factor} <span>units =</span> ${input('e1')} <span>${unitWord}</span></div>
+        <div class="eqLine">1 unit = ${input('e2')} <span>÷</span> ${input('e3','tiny')} <span>=</span> ${input('e4')}</div>
+        <div class="sectionTag">Find the difference</div>
+        <div class="eqLine">${input('e5','tiny')} <span>units =</span> ${input('e6')} <span>×</span> ${input('e7','tiny')} <span>=</span> ${input('e8')}</div>
+        <div class="eqLine">${pa} travelled ${input('e9')} <span>${unitWord} further than ${pb}.</span></div>
+      </div>
+    `,
+    expected:{e1:total,e2:total,e3:factor,e4:unit,e5:diffUnits,e6:unit,e7:diffUnits,e8:diff,e9:diff},
+    fields:["e1","e2","e3","e4","e5","e6","e7","e8","e9"],
+    commutativePairs:[["e6","e7"]],
+    explain:`${factor} units = ${total}. So 1 unit = ${total} ÷ ${factor} = ${unit}. The difference is ${diffUnits} units = ${unit} × ${diffUnits} = ${diff}.`
+  };
+}
+function buildQuestions(){
+  return shuffle([
+    qMilkLeft(), qMilkLeft(),
+    qPackets(), qPackets(),
+    qBottlesTotal(), qBottlesTotal(),
+    qBagsLeft(), qBagsLeft(),
+    qTimesDifference(), qTimesDifference()
+  ]);
+}
+
+/* game flow */
+function goHome(){ show("home"); }
+function startGame(m){ mode = m; restart(); }
+function restart(){
+  round = 0;
+  currentPlayer = 0;
+  scores = [0,0];
+  questions = buildQuestions();
+  document.getElementById("score2").style.visibility = mode===2 ? "visible" : "hidden";
+  show("game");
+  renderQuestion();
+}
+function renderQuestion(){
+  answered = false;
+  const q = questions[round];
+  document.getElementById("round").textContent = `${round+1} / ${TOTAL}`;
+  document.getElementById("bar").style.width = `${(round/TOTAL)*100}%`;
+  document.getElementById("score1").textContent = `Player 1: ${scores[0]}`;
+  document.getElementById("score2").textContent = `Player 2: ${scores[1]}`;
+  document.getElementById("typeBadge").textContent = q.type;
+  document.getElementById("questionTitle").textContent = q.title;
+  document.getElementById("storyText").innerHTML = q.story;
+  document.getElementById("questionContent").innerHTML = q.render();
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("explain").textContent = "";
+  document.getElementById("checkBtn").disabled = false;
+  document.getElementById("nextBtn").classList.add("hidden");
+
+  const turn = document.getElementById("turnBanner");
+  if(mode===2){
+    turn.textContent = currentPlayer===0 ? "🔵 Player 1's Turn" : "🔴 Player 2's Turn";
+    turn.className = "badge turn " + (currentPlayer===0 ? "p1" : "p2");
+  }else{
+    turn.textContent = "👤 Your Turn";
+    turn.className = "badge turn p1";
+  }
+
+  q.fields.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.value = "";
+      el.disabled = false;
+      el.classList.remove("correct","wrong");
+    }
+  });
+
+  setBalloonPositions();
+  document.getElementById("raceNote").textContent = "Ready to float higher!";
+}
+function markInputs(q, ok){
+  q.fields.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.disabled = true;
+    el.classList.add(ok ? "correct" : "wrong");
+  });
+}
+function checkAnswer(){
+  if(answered) return;
+  const q = questions[round];
+  let allFilled = true;
+  let ok = true;
+
+  q.fields.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const raw = el.value.trim();
+    if(raw==="" && q.expected[id]!==0) allFilled = false;
+  });
+  if(!allFilled){
+    const fb = document.getElementById("feedback");
+    fb.textContent = "⚠️ Fill in all the required blanks first.";
+    fb.style.color = "#b36f14";
+    return;
+  }
+
+  answered = true;
+
+  const values = {};
+  q.fields.forEach(id=>{
+    const el = document.getElementById(id);
+    const raw = el.value.trim();
+    values[id] = (raw==="" && q.expected[id]===0) ? 0 : Number(raw);
+  });
+
+  // First check all ordinary fields exactly.
+  const commutativeIds = new Set((q.commutativePairs || []).flat());
+  q.fields.forEach(id=>{
+    if(commutativeIds.has(id)) return;
+    if(Number.isNaN(values[id]) || values[id] !== q.expected[id]) ok = false;
+  });
+
+  // Addition and multiplication are commutative:
+  // for marked operand pairs, either order is accepted.
+  (q.commutativePairs || []).forEach(([id1,id2])=>{
+    const v1 = values[id1], v2 = values[id2];
+    const e1 = q.expected[id1], e2 = q.expected[id2];
+    const direct = v1===e1 && v2===e2;
+    const swapped = v1===e2 && v2===e1;
+    if(Number.isNaN(v1) || Number.isNaN(v2) || (!direct && !swapped)) ok = false;
+  });
+
+  const p = mode===2 ? currentPlayer : 0;
+  document.getElementById("checkBtn").disabled = true;
+
+  if(ok){
+    scores[p]++;
+    markInputs(q,true);
+    document.getElementById("feedback").textContent = "✅ Correct!";
+    document.getElementById("feedback").style.color = "#14884b";
+    document.getElementById("explain").textContent = q.explain;
+    balloonRise(p);
+  }else{
+    markInputs(q,false);
+    document.getElementById("feedback").textContent = "❌ Not quite.";
+    document.getElementById("feedback").style.color = "#b43b3b";
+    document.getElementById("explain").textContent = q.explain;
+    balloonStay(p);
+  }
+
+  document.getElementById("score1").textContent = `Player 1: ${scores[0]}`;
+  document.getElementById("score2").textContent = `Player 2: ${scores[1]}`;
+  document.getElementById("sceneScore1").textContent = scores[0];
+  document.getElementById("sceneScore2").textContent = scores[1];
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+function nextQuestion(){
+  round++;
+  if(round>=TOTAL){ finish(); return; }
+  if(mode===2) currentPlayer = currentPlayer===0 ? 1 : 0;
+  renderQuestion();
+}
+function finish(){
+  document.getElementById("bar").style.width = "100%";
+  show("results");
+  if(mode===1){
+    const s=scores[0];
+    document.getElementById("resultTitle").textContent = s>=8 ? "Wonderful Flying!" : s>=6 ? "Nice Effort!" : "Keep Practising!";
+    document.getElementById("resultText").innerHTML =
+      `You answered <b>${s} out of ${TOTAL}</b> questions correctly.<br>` +
+      (s>=8 ? "You solved the multi-step word problems very well." :
+       s>=6 ? "Well done. You are building good problem-solving confidence." :
+       "Try again and look carefully at each bar model and number sentence.");
+  }else{
+    const a=scores[0], b=scores[1];
+    document.getElementById("resultTitle").textContent = a===b ? "It's a Tie!" : `Player ${a>b?1:2} Wins!`;
+    document.getElementById("resultText").innerHTML =
+      `Player 1: <b>${a}</b><br>Player 2: <b>${b}</b><br><br>Great teamwork and problem solving!`;
+  }
+}
+document.addEventListener("keydown", e=>{
+  if(!document.getElementById("game").classList.contains("active")) return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    if(answered) nextQuestion(); else checkAnswer();
+  }
+});
+
+document.getElementById("previewArt").innerHTML = `
+<svg viewBox="0 0 560 240" style="width:100%;height:100%">
+  <defs>
+    <linearGradient id="prevSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#d8f1ff"/><stop offset="1" stop-color="#f8fdff"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="560" height="240" fill="url(#prevSky)"/>
+  <rect x="0" y="188" width="560" height="52" fill="#92d56f"/>
+  <g fill="#fff">
+    <ellipse cx="95" cy="56" rx="36" ry="18"/><ellipse cx="120" cy="54" rx="28" ry="15"/>
+    <ellipse cx="394" cy="44" rx="30" ry="18"/><ellipse cx="417" cy="42" rx="26" ry="14"/>
+  </g>
+  <g transform="translate(140 175)">
+    <path d="M0 -48 C34 -48 39 -12 0 12 C-39 -12 -34 -48 0 -48 Z" fill="#68b0ff" stroke="#fff" stroke-width="4"/>
+    <path d="M-14 18 L14 18 L10 34 L-10 34 Z" fill="#ba7b43" stroke="#7d5127" stroke-width="3"/>
+    <line x1="-12" y1="12" x2="-8" y2="20" stroke="#7d5127" stroke-width="3"/>
+    <line x1="12" y1="12" x2="8" y2="20" stroke="#7d5127" stroke-width="3"/>
+  </g>
+  <g transform="translate(330 128)">
+    <path d="M0 -48 C34 -48 39 -12 0 12 C-39 -12 -34 -48 0 -48 Z" fill="#ff8d8d" stroke="#fff" stroke-width="4"/>
+    <path d="M-14 18 L14 18 L10 34 L-10 34 Z" fill="#ba7b43" stroke="#7d5127" stroke-width="3"/>
+    <line x1="-12" y1="12" x2="-8" y2="20" stroke="#7d5127" stroke-width="3"/>
+    <line x1="12" y1="12" x2="8" y2="20" stroke="#7d5127" stroke-width="3"/>
+  </g>
+  <rect x="55" y="84" width="142" height="20" fill="#f1d09d" stroke="#222" stroke-width="2"/>
+  <rect x="197" y="84" width="78" height="20" fill="#e59dac" stroke="#222" stroke-width="2"/>
+  <text x="26" y="28" font-size="26" font-weight="900" fill="#245f98">Solve, then float higher!</text>
+  <text x="24" y="164" font-size="18" font-weight="900" fill="#446176">Bar models + number sentences</text>
+</svg>`;
+</script>
+</body>
+</html>
