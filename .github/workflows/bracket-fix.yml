@@ -17,116 +17,72 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re
 
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
 
-          svg_packets = r'''function svgPackets(total,used,packets,unit){
-            const packed=total-used,scale=300/total,packedW=packed*scale,usedW=used*scale,unitW=packedW/packets;
-            let divs="";
-            for(let i=1;i<packets;i++){
-              divs+=`<line x1="${80+unitW*i}" y1="128" x2="${80+unitW*i}" y2="156" stroke="#222" stroke-dasharray="4 4"/>`;
-            }
-            return `<svg viewBox="0 0 470 210" style="width:100%;max-width:470px;height:210px">
-              <rect x="80" y="34" width="${packedW}" height="28" fill="#efe369" stroke="#222" stroke-width="2"/>
-              <rect x="${80+packedW}" y="34" width="${usedW}" height="28" fill="#f7ae2b" stroke="#222" stroke-width="2"/>
-              <path d="M80 28 v-8 h${packedW+usedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M80 68 v8 h${packedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M${80+packedW} 68 v8 h${usedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${80+(packedW+usedW)/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${total} ${unit}</text>
-              <text x="${80+packedW/2}" y="94" text-anchor="middle" font-size="18" font-weight="900">?</text>
-              <text x="${80+packedW+usedW/2}" y="94" text-anchor="middle" font-size="18" font-weight="900">${used} ${unit}</text>
-              <rect x="80" y="128" width="${packedW}" height="28" fill="#efe369" stroke="#222" stroke-width="2"/>
-              ${divs}
-              <path d="M80 104 v-8 h${packedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${80+packedW/2}" y="114" text-anchor="middle" font-size="18" font-weight="900">packed into ${packets}</text>
-              <path d="M80 162 v8 h${unitW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${80+unitW/2}" y="186" text-anchor="middle" font-size="18" font-weight="900">?</text>
-            </svg>`;
-          }
-          '''
+          def patch(needle, replacement, label):
+              global text
+              if needle not in text:
+                  raise RuntimeError(f'Missing expected section: {label}')
+              text = text.replace(needle, replacement, 1)
 
-          svg_units = r'''function svgUnitsAndTotal(unit,n,other,person1){
-            const total=unit*n+other;
-            const unitW=55;
-            let topUnits="";
-            for(let i=0;i<n;i++){
-              topUnits+=`<rect x="${80+i*unitW}" y="34" width="${unitW}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/>`;
-              if(i>0) topUnits+=`<line x1="${80+i*unitW}" y1="34" x2="${80+i*unitW}" y2="62" stroke="#222" stroke-dasharray="4 4"/>`;
-            }
-            const firstW=unitW*n;
-            const scale=270/total;
-            const p1W=person1*scale,p2W=other*scale;
-            return `<svg viewBox="0 0 480 220" style="width:100%;max-width:480px;height:220px">
-              ${topUnits}
-              <path d="M80 28 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M80 68 v8 h${firstW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${80+unitW/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${unit} ml</text>
-              <text x="${80+firstW/2}" y="92" text-anchor="middle" font-size="18" font-weight="900">?</text>
-              <rect x="80" y="146" width="${p1W}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/>
-              <rect x="${80+p1W}" y="146" width="${p2W}" height="28" fill="#9ec6ea" stroke="#222" stroke-width="2"/>
-              <path d="M80 140 v-8 h${p1W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M${80+p1W} 140 v-8 h${p2W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M80 178 v8 h${p1W+p2W} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${80+p1W/2}" y="138" text-anchor="middle" font-size="16" font-weight="900">${person1}</text>
-              <text x="${80+p1W+p2W/2}" y="138" text-anchor="middle" font-size="16" font-weight="900">${other} ml</text>
-              <text x="${80+(p1W+p2W)/2}" y="204" text-anchor="middle" font-size="18" font-weight="900">?</text>
-            </svg>`;
-          }
-          '''
+          # Equal packets: whole, packed/used parts, packed group and one packet.
+          patch(
+          '''    <rect x="${80+packedW}" y="32" width="${usedW}" height="28" fill="#f7ae2b" stroke="#222" stroke-width="2"/>
+    <text x="${80+(packedW+usedW)/2}" y="17"''',
+          '''    <rect x="${80+packedW}" y="32" width="${usedW}" height="28" fill="#f7ae2b" stroke="#222" stroke-width="2"/>
+    <path d="M80 26 v-8 h${packedW+usedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 66 v8 h${packedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${80+packedW} 66 v8 h${usedW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+(packedW+usedW)/2}" y="17"''', 'packets upper brackets')
 
-          svg_bags = r'''function svgBags(totalBags,given,unit){
-            const left=totalBags-given;
-            const unitW=42;
-            let units="";
-            for(let i=0;i<totalBags;i++){
-              units+=`<rect x="${75+i*unitW}" y="40" width="${unitW}" height="28" fill="#ec8eb2" stroke="#222" stroke-width="2"/>`;
-              if(i>0) units+=`<line x1="${75+i*unitW}" y1="40" x2="${75+i*unitW}" y2="68" stroke="#222" stroke-dasharray="4 4"/>`;
-            }
-            return `<svg viewBox="0 0 470 150" style="width:100%;max-width:470px;height:150px">
-              ${units}
-              <path d="M75 34 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M75 74 v8 h${unitW*given} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M${75+unitW*given} 74 v8 h${unitW*left} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${75+unitW/2}" y="16" text-anchor="middle" font-size="18" font-weight="900">${unit} g</text>
-              <text x="${75+unitW*given/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">given away</text>
-              <text x="${75+unitW*given+unitW*left/2}" y="100" text-anchor="middle" font-size="18" font-weight="900">?</text>
-            </svg>`;
-          }
-          '''
+          patch(
+          '''    ${divs}
+    <text x="${80+packedW/2}" y="115"''',
+          '''    ${divs}
+    <path d="M80 120 v-8 h${packedW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M80 160 v8 h${unitW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${80+packedW/2}" y="115"''', 'packets lower brackets')
 
-          svg_times = r'''function svgTimes(total,factor){
-            const unitW=72;
-            let topUnits="";
-            for(let i=0;i<factor;i++){
-              topUnits+=`<rect x="${120+i*unitW}" y="34" width="${unitW}" height="28" fill="#8ebbe5" stroke="#222" stroke-width="2"/>`;
-              if(i>0) topUnits+=`<line x1="${120+i*unitW}" y1="34" x2="${120+i*unitW}" y2="62" stroke="#222" stroke-dasharray="4 4"/>`;
-            }
-            return `<svg viewBox="0 0 520 145" style="width:100%;max-width:520px;height:145px">
-              <text x="48" y="52" font-size="18" font-weight="900">A</text>
-              <text x="48" y="100" font-size="18" font-weight="900">B</text>
-              ${topUnits}
-              <rect x="120" y="82" width="${unitW}" height="28" fill="#f0ae3c" stroke="#222" stroke-width="2"/>
-              <path d="M120 28 v-8 h${unitW*factor} v8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <path d="M${120+unitW} 68 v8 h${unitW*(factor-1)} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
-              <text x="${120+unitW*factor/2}" y="18" text-anchor="middle" font-size="18" font-weight="900">${total}</text>
-              <text x="${120+unitW+(unitW*(factor-1))/2}" y="92" text-anchor="middle" font-size="18" font-weight="900">?</text>
-            </svg>`;
-          }
-          '''
+          # Bottles and total: one unit, first person's whole, both parts and total.
+          patch(
+          '''    ${top}
+    <text x="${72+unitW/2}" y="20"''',
+          '''    ${top}
+    <path d="M72 28 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M72 66 v8 h${firstW} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${72+unitW/2}" y="20"''', 'bottle unit brackets')
 
-          patterns = [
-            (r'function svgPackets\(.*?(?=\nfunction svgUnitsAndTotal)', svg_packets),
-            (r'function svgUnitsAndTotal\(.*?(?=\nfunction svgBags)', svg_units),
-            (r'function svgBags\(.*?(?=\nfunction svgTimes)', svg_bags),
-            (r'function svgTimes\(.*?(?=\n\n/\* question generators \*/)', svg_times),
-          ]
+          patch(
+          '''    <rect x="${72+p1W}" y="130" width="${p2W}" height="28" fill="#9ec6ea" stroke="#222" stroke-width="2"/>
+    <text x="${72+p1W/2}" y="122"''',
+          '''    <rect x="${72+p1W}" y="130" width="${p2W}" height="28" fill="#9ec6ea" stroke="#222" stroke-width="2"/>
+    <path d="M72 124 v-8 h${p1W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${72+p1W} 124 v-8 h${p2W} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M72 164 v8 h${p1W+p2W} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${72+p1W/2}" y="122"''', 'bottle total brackets')
 
-          for pattern, replacement in patterns:
-            text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
-            if count != 1:
-              raise RuntimeError(f'Patch failed for pattern: {pattern}')
+          # Bags: one bag, given-away group and remaining group.
+          patch(
+          '''    ${units}
+    <text x="${72+unitW/2}" y="20"''',
+          '''    ${units}
+    <path d="M72 32 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M72 72 v8 h${unitW*given} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${72+unitW*given} 72 v8 h${unitW*left} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${72+unitW/2}" y="20"''', 'bag brackets')
+
+          # Times-as-much: whole amount and difference portion.
+          patch(
+          '''    ${top}
+    <rect x="120" y="80" width="${unitW}" height="28" fill="#f0ae3c" stroke="#222" stroke-width="2"/>
+    <text x="${120+unitW*factor/2}" y="19"''',
+          '''    ${top}
+    <rect x="120" y="80" width="${unitW}" height="28" fill="#f0ae3c" stroke="#222" stroke-width="2"/>
+    <path d="M120 28 v-8 h${unitW*factor} v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <path d="M${120+unitW} 66 v8 h${unitW*(factor-1)} v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${120+unitW*factor/2}" y="19"''', 'times-as-much brackets')
 
           path.write_text(text, encoding='utf-8')
       - name: Commit bracket fix
