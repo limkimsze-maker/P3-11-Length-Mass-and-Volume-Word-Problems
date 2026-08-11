@@ -25,4 +25,5 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add index.html
           git commit -m "Use 12 questions for 2-player rounds"
-          git push
+          git pull --rebase origin main
+          git push origin main
