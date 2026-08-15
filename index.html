@@ -108,13 +108,15 @@ main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
 @media(max-width:720px){body{padding:0}.app{height:100%;border-radius:0;border-left:0;border-right:0}header{padding:8px 10px}header .sub{display:none}main{padding:8px}.answerInput{width:84px;height:40px}.answerInput.small{width:70px}.answerInput.tiny{width:58px}}
 @media(max-width:430px) and (orientation:portrait){header h1{font-size:19px}.smallbtn{font-size:12px;padding:7px 9px}.statusline{font-size:12px}.badge{font-size:11px;padding:4px 8px}#questionTitle{font-size:18px}.story{font-size:14px}.eqLine{font-size:17px}.answerInput{width:74px;height:39px}.answerInput.small{width:62px}.answerInput.tiny{width:52px}.feedback{font-size:15px}.explain{font-size:11px}.gameGrid{grid-template-rows:minmax(0,1.37fr) minmax(145px,.63fr)}}
 @media(max-height:600px) and (orientation:landscape){header{padding:5px 10px}header h1{font-size:20px}main{padding:5px}.smallbtn{padding:5px 8px}.statusline{font-size:12px}.gameGrid{grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);grid-template-rows:1fr}.questionCard,.raceCard{padding:6px}#questionTitle{font-size:17px;margin:4px 0}.story{font-size:13px}.workArea{margin-top:4px}.answerInput{height:36px}.actions{margin-top:4px}.action{padding:6px 14px;font-size:15px}.feedback{font-size:14px;margin-top:3px}.explain{font-size:10px;min-height:20px}.raceNote{font-size:14px}}
+.sfBackToHub{display:inline-flex;align-items:center;justify-content:center;color:#075b93;background:#fff;text-decoration:none;font-weight:900;border-radius:999px;padding:7px 12px;box-shadow:0 2px 7px #0002;white-space:nowrap;font-size:14px;flex:0 0 auto}.sfBackToHub:hover{background:#eef9ff}header .headerTitle{min-width:0;flex:1}@media(max-width:720px){.sfBackToHub{font-size:11px;padding:6px 8px}}
 </style>
 <script src="https://cdn.counter.dev/script.js" data-id="825e93b6-ce99-40ef-8bcc-125f13297433" data-utcoffset="8"></script>
 </head>
 <body>
 <div class="app">
 <header>
-  <h1>🔥 Sports Fiesta Torch Relay – Word Problems</h1>
+  <a class="sfBackToHub" href="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/" aria-label="Back to Sports Fiesta Practice Hub">← Fiesta Hub</a>
+  <div class="headerTitle"><h1>🔥 Sports Fiesta Torch Relay – Word Problems</h1></div>
   <div class="sub">Length • Mass • Volume • multi-step word problems<br>1 Player or 2 Players • pass the torch to the big flame</div>
 </header>
 <main>
@@ -130,7 +132,7 @@ main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
     </div>
     <div class="card preview">
       <h3>Torch Relay Preview</h3>
-      <ul><li>10 questions in each game</li><li>1-player or 2-player turns</li><li>Bar models and number sentences</li><li>Reach the big torch at the finish</li></ul>
+      <ul><li>10 questions in 1-player • 12 questions in 2-player</li><li>1-player or 2-player turns</li><li>Bar models and number sentences</li><li>Reach the big torch at the finish</li></ul>
       <div class="previewArt" id="previewArt"></div>
       <div class="emblemNote">The event emblem uses six separate circles only. It does not use any official sports-event ring symbol.</div>
     </div>
@@ -171,7 +173,27 @@ main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
 </main></div>
 <script>
 let TOTAL=10;
-let mode=1, round=0, currentPlayer=0, scores=[0,0], questions=[], answered=false, soundOn=true, audioCtx=null;
+let mode=1, round=0, currentPlayer=0, scores=[0,0], questions=[], answered=false, soundOn=true, audioCtx=null, advancing=false;
+const HUB_KEY="sportsFiestaHubProgress_v1";
+function saveHubProgress(){
+  try{
+    const data=JSON.parse(localStorage.getItem(HUB_KEY)||"{}")||{};
+    const old=data[11]||{};
+    const winner=mode===2?(scores[0]===scores[1]?0:(scores[0]>scores[1]?1:2)):0;
+    data[11]={
+      ...old,
+      completed:true,
+      pieceEarned:!!old.pieceEarned||mode===1,
+      perfectSingle:!!old.perfectSingle||(mode===1&&scores[0]===TOTAL),
+      verified:true,
+      source:"game-v5",
+      updatedAt:new Date().toISOString(),
+      lastMode:mode,
+      lastWinner:winner
+    };
+    localStorage.setItem(HUB_KEY,JSON.stringify(data));
+  }catch(e){console.warn("Practice 11 progress could not be saved",e);}
+}
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
@@ -192,32 +214,78 @@ function qDrinkStation(){const total=pick([2000,2500,3000,3200,3600,4000]);const
 function qPowderPackets(){const packets=pick([2,3,4,5]),each=pick([100,150,200,250,300]);const packed=packets*each,used=pick([100,150,200,250,300,400]),total=packed+used;return{type:"Share remaining powder equally",title:"How much powder went into each team packet?",story:`A helper prepared <b>${total} g</b> of sports drink powder. After setting aside <b>${used} g</b>, the rest was shared equally among <b>${packets}</b> team packets. What mass of powder went into each packet?`,render:()=>`<div class="svgWrap">${svgPackets(total,used,packets,"g")}</div><div class="mathBlock"><div class="sectionTag">Find how much powder remained</div><div class="eqLine">${input("b1")} <span>−</span> ${input("b2")} <span>=</span> ${input("b3")}</div><div class="eqLine">Powder remaining: ${input("b4")} <span>g.</span></div><div class="sectionTag">Find each packet</div><div class="eqLine">${input("b5")} <span>÷</span> ${input("b6","tiny")} <span>=</span> ${input("b7")}</div><div class="eqLine">Each packet contains ${input("b8")} <span>g.</span></div></div>`,expected:{b1:total,b2:used,b3:packed,b4:packed,b5:packed,b6:packets,b7:each,b8:each},fields:["b1","b2","b3","b4","b5","b6","b7","b8"],explain:`${total} − ${used} = ${packed}. Then ${packed} ÷ ${packets} = ${each}.`}}
 function qWaterStation(){const each=pick([200,250,500]),bottles=pick([2,3,4,5]);const first=each*bottles,second=pick([600,750,800,900,1000,1200,1300,1500,1800]),total=first+second;const litres=Math.floor(total/1000),ml=total%1000;return{type:"Units and total in l and ml",title:"How much water is at the station altogether?",story:`Each blue-team bottle holds <b>${each} ml</b> of water. There are <b>${bottles}</b> blue-team bottles. A red-team jug contains another <b>${second} ml</b>. How much water is there altogether? Give your answer in litres and millilitres.`,render:()=>`<div class="svgWrap">${svgUnitsAndTotal(each,bottles,second,first)}</div><div class="mathBlock"><div class="sectionTag">First find the water in the blue bottles</div><div class="eqLine">${bottles} <span>units =</span> ${input("c1","small")} <span>×</span> ${input("c2","small")} <span>=</span> ${input("c3")}</div><div class="eqLine">The blue bottles hold ${input("c4")} <span>ml.</span></div><div class="sectionTag">Then find the total</div><div class="eqLine">${input("c5")} <span>+</span> ${input("c6")} <span>=</span> ${input("c7")}</div><div class="eqLine">${input("c8")} <span>ml =</span> ${input("c9","tiny")} <span>l</span> ${input("c10","small")} <span>ml</span></div><div class="eqLine">The station has ${input("c11","tiny")} <span>l</span> ${input("c12","small")} <span>ml altogether.</span></div></div>`,expected:{c1:bottles,c2:each,c3:first,c4:first,c5:first,c6:second,c7:total,c8:total,c9:litres,c10:ml,c11:litres,c12:ml},fields:["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12"],commutativePairs:[["c1","c2"],["c5","c6"]],explain:`${bottles} × ${each} = ${first}. Then ${first} + ${second} = ${total}, which is ${litres} l ${ml} ml.`}}
 function qMarkerBags(){const totalBags=pick([6,7,8,9]),given=pick([2,3,4,5]);if(given>=totalBags)return qMarkerBags();const leftBags=totalBags-given,unit=pick([200,250,400,500,800]),totalLeft=leftBags*unit;return{type:"Training-marker bags left",title:"What mass of marker bags remained?",story:`A team had <b>${totalBags}</b> bags of soft training markers. Each bag had a mass of <b>${unit} g</b>. <b>${given}</b> bags were moved to another activity station. What was the mass of the bags left?`,render:()=>`<div class="svgWrap">${svgBags(totalBags,given,unit)}</div><div class="mathBlock"><div class="sectionTag">Find how many bags were left</div><div class="eqLine">${input("d1","tiny")} <span>−</span> ${input("d2","tiny")} <span>=</span> ${input("d3","tiny")}</div><div class="eqLine">The team had ${input("d4","tiny")} <span>bags left.</span></div><div class="sectionTag">Find the mass left</div><div class="eqLine">1 unit = ${input("d5")} <span>g</span></div><div class="eqLine">${input("d6","tiny")} <span>units =</span> ${input("d7")} <span>×</span> ${input("d8","tiny")} <span>=</span> ${input("d9")}</div><div class="eqLine">The marker bags left had a mass of ${input("d10")} <span>g.</span></div></div>`,expected:{d1:totalBags,d2:given,d3:leftBags,d4:leftBags,d5:unit,d6:leftBags,d7:unit,d8:leftBags,d9:totalLeft,d10:totalLeft},fields:["d1","d2","d3","d4","d5","d6","d7","d8","d9","d10"],commutativePairs:[["d7","d8"]],explain:`${totalBags} − ${given} = ${leftBags}. Then ${leftBags} × ${unit} = ${totalLeft}.`}}
-function qRouteCompare(){const factor=pick([2,3,4]),unit=pick([8,9,10,12,15,18,20]);const total=factor*unit,diffUnits=factor-1,diff=total-unit,unitWord=pick(["km","m"]);return{type:"Compare two training routes",title:"How much longer is Route A?",story:`Route A is <b>${total} ${unitWord}</b> long. Route A is <b>${factor}</b> times as long as Route B. How much longer is Route A than Route B?`,render:()=>`<div class="svgWrap">${svgTimes(total,factor)}</div><div class="mathBlock"><div class="sectionTag">Find 1 unit</div><div class="eqLine">${factor} <span>units =</span> ${input("e1")} <span>${unitWord}</span></div><div class="eqLine">1 unit = ${input("e2")} <span>÷</span> ${input("e3","tiny")} <span>=</span> ${input("e4")}</div><div class="sectionTag">Find the difference</div><div class="eqLine">${input("e5","tiny")} <span>units =</span> ${input("e6")} <span>×</span> ${input("e7","tiny")} <span>=</span> ${input("e8")}</div><div class="eqLine">Route A is ${input("e9")} <span>${unitWord} longer than Route B.</span></div></div>`,expected:{e1:total,e2:total,e3:factor,e4:unit,e5:diffUnits,e6:unit,e7:diffUnits,e8:diff,e9:diff},fields:["e1","e2","e3","e4","e5","e6","e7","e8","e9"],commutativePairs:[["e6","e7"]],explain:`${factor} units = ${total}. So 1 unit = ${total} ÷ ${factor} = ${unit}. The difference is ${diffUnits} units = ${unit} × ${diffUnits} = ${diff}.`}}
-function buildQuestions(){return shuffle([qDrinkStation(),qDrinkStation(),qPowderPackets(),qPowderPackets(),qWaterStation(),qWaterStation(),qMarkerBags(),qMarkerBags(),qRouteCompare(),qRouteCompare()])}
+function qRouteCompare(){const factor=pick([2,3]),unit=pick([100,150,200,250,300]);const total=factor*unit,diffUnits=factor-1,diff=total-unit,unitWord="m";return{type:"Compare two training routes",title:"How much longer is Route A?",story:`Route A is <b>${total} m</b> long. Route A is <b>${factor}</b> times as long as Route B. How much longer is Route A than Route B?`,render:()=>`<div class="svgWrap">${svgTimes(total,factor)}</div><div class="mathBlock"><div class="sectionTag">Find 1 unit</div><div class="eqLine">${factor} <span>units =</span> ${input("e1")} <span>m</span></div><div class="eqLine">1 unit = ${input("e2")} <span>÷</span> ${input("e3","tiny")} <span>=</span> ${input("e4")}</div><div class="sectionTag">Find the difference</div><div class="eqLine">${input("e5","tiny")} <span>units =</span> ${input("e6")} <span>×</span> ${input("e7","tiny")} <span>=</span> ${input("e8")}</div><div class="eqLine">Route A is ${input("e9")} <span>m longer than Route B.</span></div></div>`,expected:{e1:total,e2:total,e3:factor,e4:unit,e5:diffUnits,e6:unit,e7:diffUnits,e8:diff,e9:diff},fields:["e1","e2","e3","e4","e5","e6","e7","e8","e9"],commutativePairs:[["e6","e7"]],explain:`${factor} units = ${total}. So 1 unit = ${total} ÷ ${factor} = ${unit}. The difference is ${diffUnits} units = ${unit} × ${diffUnits} = ${diff}.`}}
+function questionKey(q){
+  const expected=Object.keys(q.expected||{}).sort().map(k=>`${k}:${q.expected[k]}`).join("|");
+  return `${q.type}|${q.story}|${expected}`;
+}
+function uniqueFrom(makeFn,count,seen){
+  const out=[];
+  let guard=0;
+  while(out.length<count&&guard++<400){
+    const q=makeFn();
+    const key=questionKey(q);
+    if(seen.has(key))continue;
+    seen.add(key);
+    out.push(q);
+  }
+  if(out.length!==count)throw new Error("Could not generate enough unique Practice 11 questions.");
+  return out;
+}
+function buildQuestions(){
+  const seen=new Set();
+  const makers=[qDrinkStation,qPowderPackets,qWaterStation,qMarkerBags,qRouteCompare];
+  const counts=[2,2,2,2,2];
+  if(TOTAL===12){
+    // Every family appears twice. Two different families are randomly
+    // chosen for one extra question so the bonus questions are not
+    // always biased toward the same measurement topics.
+    shuffle([0,1,2,3,4]).slice(0,2).forEach(i=>counts[i]++);
+  }
+  const out=[];
+  makers.forEach((fn,i)=>out.push(...uniqueFrom(fn,counts[i],seen)));
+  return shuffle(out);
+}
 function maxScore(){return mode===2?Math.ceil(TOTAL/2):TOTAL}
 function xForScore(score){const start=75,end=500;return start+(score/maxScore())*(end-start)}
-function setRelayPositions(){const r1=document.getElementById("runner1"),r2=document.getElementById("runner2");r1.setAttribute("transform",`translate(${xForScore(scores[0])} 149)`);r2.setAttribute("transform",`translate(${xForScore(scores[1])} 237)`);r2.style.display=mode===2?"":"none";document.getElementById("p2Label").style.display=mode===2?"":"none";document.getElementById("sceneScore2Text").style.display=mode===2?"":"none";document.getElementById("sceneScore1").textContent=scores[0];document.getElementById("sceneScore2").textContent=scores[1];if(scores[0]>=maxScore()||scores[1]>=maxScore())lightBigTorch();else dimBigTorch()}
+function setRelayPositions(){
+  const r1=document.getElementById("runner1"),r2=document.getElementById("runner2");
+  [r1,r2].forEach(r=>{
+    r.getAnimations().forEach(a=>a.cancel());
+    r.style.opacity="1";
+    r.setAttribute("opacity","1");
+    r.style.transform="";
+  });
+  ["spark1","spark2"].forEach(id=>{
+    const s=document.getElementById(id);
+    s.getAnimations().forEach(a=>a.cancel());
+    s.style.opacity="0";
+    s.setAttribute("opacity","0");
+  });
+  r1.setAttribute("transform",`translate(${xForScore(scores[0])} 149)`);
+  r2.setAttribute("transform",`translate(${xForScore(scores[1])} 237)`);
+  const showP2=mode===2;
+  r2.style.display=showP2?"":"none";
+  document.getElementById("p2Label").style.display=showP2?"":"none";
+  document.getElementById("sceneScore2Text").style.display=showP2?"":"none";
+  document.getElementById("sceneScore1").textContent=scores[0];
+  document.getElementById("sceneScore2").textContent=scores[1];
+  if(scores[0]>=maxScore()||scores[1]>=maxScore())lightBigTorch();else dimBigTorch();
+}
 function lightBigTorch(){const flame=document.getElementById("bigFlame");flame.style.opacity="1";flame.getAnimations().forEach(a=>a.cancel());flame.animate([{transform:"scale(1)",opacity:.85},{transform:"scale(1.12)",opacity:1},{transform:"scale(.96)",opacity:.9},{transform:"scale(1.08)",opacity:1}],{duration:750,iterations:2,easing:"ease-in-out",transformOrigin:"0px 60px"})}
 function dimBigTorch(){document.getElementById("bigFlame").style.opacity=".18"}
 function relayAdvance(player){correctSound();relaySound();const runner=document.getElementById(player===0?"runner1":"runner2"),spark=document.getElementById(player===0?"spark1":"spark2"),prev=scores[player]-1,x0=xForScore(prev),x1=xForScore(scores[player]),y=player===0?149:237;spark.setAttribute("transform",`translate(${x0+20} ${y-26})`);spark.animate([{opacity:0},{opacity:1,offset:.25},{opacity:0}],{duration:600,easing:"ease-out"});runner.animate([{transform:`translate(${x0}px,${y}px)`},{transform:`translate(${x0+(x1-x0)*.35}px,${y-6}px)`,offset:.35},{transform:`translate(${x0+(x1-x0)*.7}px,${y+3}px)`,offset:.7},{transform:`translate(${x1}px,${y}px)`}],{duration:760,easing:"ease-in-out",fill:"forwards"});if(scores[player]>=maxScore()){document.getElementById("raceNote").textContent=player===0?"🔥 Player 1 lights the big torch!":"🔥 Player 2 lights the big torch!";setTimeout(lightBigTorch,550)}else document.getElementById("raceNote").textContent=player===0?"🏃 Player 1 carries the torch forward!":"🏃 Player 2 carries the torch forward!"}
 function relayStay(player){wrongSound();const runner=document.getElementById(player===0?"runner1":"runner2"),x=xForScore(scores[player]),y=player===0?149:237;runner.animate([{transform:`translate(${x}px,${y}px)`},{transform:`translate(${x-5}px,${y}px)`,offset:.35},{transform:`translate(${x+5}px,${y}px)`,offset:.65},{transform:`translate(${x}px,${y}px)`}],{duration:380,easing:"ease-in-out"});document.getElementById("raceNote").textContent=player===0?"Player 1 stays at this checkpoint.":"Player 2 stays at this checkpoint."}
 function goHome(){show("home")}
-function startGame(m){mode=m;initAudio();if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();restart()}
-function restart(){round=0;currentPlayer=0;scores=[0,0];questions=buildQuestions();answered=false;document.getElementById("score2").style.visibility=mode===2?"visible":"hidden";show("game");renderQuestion()}
-function renderQuestion(){answered=false;const q=questions[round];document.getElementById("round").textContent=`${round+1} / ${TOTAL}`;document.getElementById("bar").style.width=`${(round/TOTAL)*100}%`;document.getElementById("score1").textContent=`Player 1: ${scores[0]}`;document.getElementById("score2").textContent=`Player 2: ${scores[1]}`;document.getElementById("typeBadge").textContent=q.type;document.getElementById("questionTitle").textContent=q.title;document.getElementById("storyText").innerHTML=q.story;document.getElementById("questionContent").innerHTML=q.render();document.getElementById("feedback").textContent="";document.getElementById("explain").textContent="";document.getElementById("checkBtn").disabled=false;document.getElementById("nextBtn").classList.add("hidden");const turn=document.getElementById("turnBanner");if(mode===2){turn.textContent=currentPlayer===0?"🔵 Player 1's Turn":"🟠 Player 2's Turn";turn.className="badge turn "+(currentPlayer===0?"p1":"p2")}else{turn.textContent="👤 Your Turn";turn.className="badge turn p1"}q.fields.forEach(id=>{const el=document.getElementById(id);if(el){el.value="";el.disabled=false;el.classList.remove("correct","wrong")}});setRelayPositions();document.getElementById("raceNote").textContent="🔥 Carry the torch to the next checkpoint!"}
+function startGame(m){mode=m;TOTAL=Number(m)===2?12:10;initAudio();if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();restart()}
+function restart(){round=0;currentPlayer=0;scores=[0,0];advancing=false;questions=buildQuestions();answered=false;document.getElementById("score2").style.visibility=mode===2?"visible":"hidden";show("game");renderQuestion()}
+function renderQuestion(){answered=false;const q=questions[round];document.getElementById("round").textContent=`${round+1} / ${TOTAL}`;document.getElementById("bar").style.width=`${(round/TOTAL)*100}%`;document.getElementById("score1").textContent=`Player 1: ${scores[0]}`;document.getElementById("score2").textContent=`Player 2: ${scores[1]}`;document.getElementById("typeBadge").textContent=q.type;document.getElementById("questionTitle").textContent=q.title;document.getElementById("storyText").innerHTML=q.story;document.getElementById("questionContent").innerHTML=q.render();document.getElementById("feedback").textContent="";document.getElementById("explain").textContent="";document.getElementById("checkBtn").disabled=false;const nextBtn=document.getElementById("nextBtn");nextBtn.disabled=false;nextBtn.removeAttribute("disabled");nextBtn.classList.add("hidden");const turn=document.getElementById("turnBanner");if(mode===2){turn.textContent=currentPlayer===0?"🔵 Player 1's Turn":"🟠 Player 2's Turn";turn.className="badge turn "+(currentPlayer===0?"p1":"p2")}else{turn.textContent="👤 Your Turn";turn.className="badge turn p1"}q.fields.forEach(id=>{const el=document.getElementById(id);if(el){el.value="";el.disabled=false;el.classList.remove("correct","wrong")}});setRelayPositions();document.getElementById("raceNote").textContent="🔥 Carry the torch to the next checkpoint!"}
 function markInputs(q,ok){q.fields.forEach(id=>{const el=document.getElementById(id);if(el){el.disabled=true;el.classList.add(ok?"correct":"wrong")}})}
-function checkAnswer(){if(answered)return;const q=questions[round];let allFilled=true,ok=true;q.fields.forEach(id=>{const el=document.getElementById(id),raw=el?el.value.trim():"";if(raw===""&&q.expected[id]!==0)allFilled=false});if(!allFilled){const fb=document.getElementById("feedback");fb.textContent="⚠️ Fill in all the required blanks first.";fb.style.color="#b36f14";return}answered=true;const values={};q.fields.forEach(id=>{const raw=document.getElementById(id).value.trim();values[id]=(raw===""&&q.expected[id]===0)?0:Number(raw)});const commIds=new Set((q.commutativePairs||[]).flat());q.fields.forEach(id=>{if(commIds.has(id))return;if(Number.isNaN(values[id])||values[id]!==q.expected[id])ok=false});(q.commutativePairs||[]).forEach(([a,b])=>{const v1=values[a],v2=values[b],e1=q.expected[a],e2=q.expected[b],direct=v1===e1&&v2===e2,swapped=v1===e2&&v2===e1;if(Number.isNaN(v1)||Number.isNaN(v2)||(!direct&&!swapped))ok=false});const p=mode===2?currentPlayer:0;document.getElementById("checkBtn").disabled=true;if(ok){scores[p]++;markInputs(q,true);document.getElementById("feedback").textContent="✅ Correct!";document.getElementById("feedback").style.color="#14884b";document.getElementById("explain").textContent=q.explain;relayAdvance(p)}else{markInputs(q,false);document.getElementById("feedback").textContent="❌ Not quite.";document.getElementById("feedback").style.color="#b43b3b";document.getElementById("explain").textContent=q.explain;relayStay(p)}document.getElementById("score1").textContent=`Player 1: ${scores[0]}`;document.getElementById("score2").textContent=`Player 2: ${scores[1]}`;document.getElementById("sceneScore1").textContent=scores[0];document.getElementById("sceneScore2").textContent=scores[1];document.getElementById("nextBtn").classList.remove("hidden")}
-function nextQuestion(){round++;if(round>=TOTAL){finish();return}if(mode===2)currentPlayer=currentPlayer===0?1:0;renderQuestion()}
-function finish(){document.getElementById("bar").style.width="100%";show("results");if(mode===1){const s=scores[0];document.getElementById("resultTitle").textContent=s>=8?"Torch Relay Champion!":s>=6?"Strong Relay!":"Keep Practising!";document.getElementById("resultText").innerHTML=`You answered <b>${s} out of ${TOTAL}</b> questions correctly.<br>`+(s>=8?"Excellent multi-step problem solving. The big torch is glowing brightly!":s>=6?"Well done. Your torch travelled a long way along the relay route.":"Try again and use each bar model and number sentence carefully.")}else{const a=scores[0],b=scores[1],winner=a===b?0:(a>b?1:2);document.getElementById("resultTitle").textContent=winner===0?"It's a Tie!":`Player ${winner} Wins the Relay!`;document.getElementById("resultText").innerHTML=`Player 1: <b>${a}</b><br>Player 2: <b>${b}</b><br><br>`+(winner===0?"Both players carried the torch equally far.":"The winning torch travelled farther along the relay route.")}}
+function checkAnswer(){if(answered)return;const q=questions[round];let allFilled=true,validWhole=true,ok=true;q.fields.forEach(id=>{const el=document.getElementById(id),raw=el?el.value.trim():"";if(raw===""&&q.expected[id]!==0)allFilled=false;if(raw!==""&&!/^\d+$/.test(raw))validWhole=false});if(!allFilled){const fb=document.getElementById("feedback");fb.textContent="⚠️ Fill in all the required blanks first.";fb.style.color="#b36f14";return}if(!validWhole){const fb=document.getElementById("feedback");fb.textContent="⚠️ Please use whole numbers only.";fb.style.color="#b36f14";return}answered=true;const values={};q.fields.forEach(id=>{const raw=document.getElementById(id).value.trim();values[id]=(raw===""&&q.expected[id]===0)?0:Number(raw)});const commIds=new Set((q.commutativePairs||[]).flat());q.fields.forEach(id=>{if(commIds.has(id))return;if(Number.isNaN(values[id])||values[id]!==q.expected[id])ok=false});(q.commutativePairs||[]).forEach(([a,b])=>{const v1=values[a],v2=values[b],e1=q.expected[a],e2=q.expected[b],direct=v1===e1&&v2===e2,swapped=v1===e2&&v2===e1;if(Number.isNaN(v1)||Number.isNaN(v2)||(!direct&&!swapped))ok=false});const p=mode===2?currentPlayer:0;document.getElementById("checkBtn").disabled=true;if(ok){scores[p]++;markInputs(q,true);document.getElementById("feedback").textContent="✅ Correct!";document.getElementById("feedback").style.color="#14884b";document.getElementById("explain").textContent=q.explain;relayAdvance(p)}else{markInputs(q,false);document.getElementById("feedback").textContent="❌ Not quite.";document.getElementById("feedback").style.color="#b43b3b";document.getElementById("explain").textContent=q.explain;relayStay(p)}document.getElementById("score1").textContent=`Player 1: ${scores[0]}`;document.getElementById("score2").textContent=`Player 2: ${scores[1]}`;document.getElementById("sceneScore1").textContent=scores[0];document.getElementById("sceneScore2").textContent=scores[1];document.getElementById("nextBtn").classList.remove("hidden")}
+function nextQuestion(){if(advancing||!answered)return;advancing=true;const nextBtn=document.getElementById("nextBtn");nextBtn.disabled=true;round++;if(round>=TOTAL){finish();advancing=false;return}if(mode===2)currentPlayer=currentPlayer===0?1:0;renderQuestion();advancing=false}
+function finish(){document.getElementById("bar").style.width="100%";saveHubProgress();show("results");if(mode===1){const s=scores[0];document.getElementById("resultTitle").textContent=s>=8?"Torch Relay Champion!":s>=6?"Strong Relay!":"Keep Practising!";document.getElementById("resultText").innerHTML=`You answered <b>${s} out of ${TOTAL}</b> questions correctly.<br>`+(s>=8?"Excellent multi-step problem solving. The big torch is glowing brightly!":s>=6?"Well done. Your torch travelled a long way along the relay route.":"Try again and use each bar model and number sentence carefully.")}else{const a=scores[0],b=scores[1],winner=a===b?0:(a>b?1:2);document.getElementById("resultTitle").textContent=winner===0?"It's a Tie!":`Player ${winner} Wins the Relay!`;document.getElementById("resultText").innerHTML=`Player 1: <b>${a}</b><br>Player 2: <b>${b}</b><br><br>`+(winner===0?"Both players carried the torch equally far.":"The winning torch travelled farther along the relay route.")}}
 document.addEventListener("keydown",e=>{if(!document.getElementById("game").classList.contains("active"))return;if(e.key==="Enter"){e.preventDefault();if(answered)nextQuestion();else checkAnswer()}})
 document.getElementById("previewArt").innerHTML=`<svg viewBox="0 0 560 240" style="width:100%;height:100%"><rect width="560" height="240" fill="#eef9ff"/><rect y="176" width="560" height="64" fill="#8fd06d"/><rect x="54" y="118" width="390" height="38" rx="16" fill="#d8b27f" stroke="#a87948" stroke-width="3"/><line x1="65" y1="137" x2="430" y2="137" stroke="#fff" stroke-width="3" stroke-dasharray="11 9"/><g transform="translate(92 137)"><circle cx="0" cy="-23" r="10" fill="#f2bd90"/><line x1="0" y1="-13" x2="0" y2="9" stroke="#4a90e2" stroke-width="10" stroke-linecap="round"/><line x1="-2" y1="8" x2="-12" y2="23" stroke="#26374a" stroke-width="6" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="19" stroke="#26374a" stroke-width="6" stroke-linecap="round"/><g transform="translate(19 -18)"><path d="M-3 0L5 0L2 17L0 17Z" fill="#8a5a32"/><path d="M1 0C-9-8-2-18 2-22C2-13 9-13 10-20C18-9 11-2 1 0Z" fill="#ff9d18"/></g></g><g transform="translate(492 82)"><path d="M-25 62L25 62L14 108L-14 108Z" fill="#717981"/><ellipse cx="0" cy="62" rx="28" ry="10" fill="#939ba3"/><path d="M0 53C-27 36-19 12-4 0C-6 20 9 18 14 4C30 24 24 45 0 53Z" fill="#ff9d18"/></g><g transform="translate(28 28)"><circle cx="0" cy="0" r="10" fill="#4a90e2"/><circle cx="26" cy="0" r="10" fill="#ef8a2f"/><circle cx="52" cy="0" r="10" fill="#48a868"/><circle cx="0" cy="26" r="10" fill="#8a63c7"/><circle cx="26" cy="26" r="10" fill="#e45775"/><circle cx="52" cy="26" r="10" fill="#e3b11f"/></g><text x="115" y="42" font-size="25" font-weight="900" fill="#245f98">Solve • Run • Light the Torch!</text><text x="114" y="72" font-size="17" font-weight="900" fill="#526c80">Six separate circles — no official ring symbol</text></svg>`
 </script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-original-questions-v1.js?v=20260810a" data-practice="11"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-2p-12-round-v2.js?v=20260812b"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-medal-hook-v4.js?v=20260811a" data-practice="11" data-sport="Torch Relay"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-random-questions-v1.js?v=20260812a" data-practice="11"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-audit-fixes-v1.js?v=20260812a" data-practice="11"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-back-to-hub-v1.js?v=20260812a"></script>
-<script src="https://limkimsze-maker.github.io/P3-Length-Mass-and-Volume-Sports-Fiesta-/sports-fiesta-next-guard-v1.js?v=20260812a" data-practice="11"></script>
 </body>
 </html>
