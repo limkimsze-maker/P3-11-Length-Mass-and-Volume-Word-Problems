@@ -200,6 +200,91 @@ main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
   .raceNote{font-size:14px}
 }
 
+
+/* Organised word-problem layout */
+#questionTitle{
+  text-align:left;
+  padding-left:8px;
+}
+.story{
+  text-align:left;
+  align-self:stretch;
+  max-width:none;
+  padding:0 8px;
+}
+.partsGrid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  width:100%;
+}
+.problemPart{
+  min-width:0;
+  border:2px solid #e1edf6;
+  border-radius:16px;
+  padding:9px 11px;
+  background:#fff;
+}
+.partHeading{
+  display:inline-block;
+  margin:0 0 7px;
+  padding:5px 10px;
+  border-radius:11px;
+  background:#e8f7ef;
+  color:#0d7443;
+  font-weight:900;
+  font-size:14px;
+}
+.problemPart .svgWrap{
+  justify-content:flex-start;
+  margin:0 0 6px;
+}
+.problemPart .mathBlock{
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:7px;
+}
+.problemPart .eqLine{
+  justify-content:flex-start;
+  text-align:left;
+}
+.problemPart .sectionTag{display:none}
+
+@media(min-width:1101px){
+  #questionContent{
+    display:block;
+    height:100%;
+  }
+  .partsGrid{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:14px;
+    height:100%;
+    align-items:stretch;
+  }
+  .problemPart{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
+  }
+  .problemPart:first-child{
+    border-right:3px solid #d8e8f3;
+  }
+  .problemPart .svgWrap svg{
+    max-height:130px!important;
+  }
+  .problemPart .mathBlock{
+    margin-top:2px;
+  }
+}
+@media(min-width:1101px) and (max-height:820px){
+  .problemPart{padding:6px 8px}
+  .partHeading{font-size:12px;padding:3px 8px;margin-bottom:4px}
+  .problemPart .svgWrap{margin-bottom:3px}
+  .problemPart .svgWrap svg{max-height:105px!important}
+  .problemPart .mathBlock{gap:4px}
+}
+
 @media(max-width:1150px){.homeGrid{grid-template-columns:1fr}.preview{display:none}.gameGrid{grid-template-columns:1fr;grid-template-rows:minmax(0,1.18fr) minmax(200px,.82fr)}}
 @media(max-width:720px){body{padding:0}.app{height:100%;border-radius:0;border-left:0;border-right:0}header{padding:8px 10px}header .sub{display:none}main{padding:8px}.answerInput{width:84px;height:40px}.answerInput.small{width:70px}.answerInput.tiny{width:58px}}
 @media(max-width:430px) and (orientation:portrait){header h1{font-size:19px}.smallbtn{font-size:12px;padding:7px 9px}.statusline{font-size:12px}.badge{font-size:11px;padding:4px 8px}#questionTitle{font-size:18px}.story{font-size:14px}.eqLine{font-size:17px}.answerInput{width:74px;height:39px}.answerInput.small{width:62px}.answerInput.tiny{width:52px}.feedback{font-size:15px}.explain{font-size:11px}.gameGrid{grid-template-rows:minmax(0,1.37fr) minmax(145px,.63fr)}}
@@ -329,11 +414,58 @@ function svgPackets(total,used,packets,unit){
 function svgUnitsAndTotal(unit,n,other,firstAmount){const total=unit*n+other,unitW=52;let top="";for(let i=0;i<n;i++)top+=`<rect x="${72+i*unitW}" y="32" width="${unitW}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/>`;const firstW=unitW*n,scale=265/total,p1W=firstAmount*scale,p2W=other*scale;return `<svg viewBox="0 0 470 205" style="width:100%;max-width:470px;height:205px">${top}<path d="M72 28 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/><path d="M72 66 v8 h${firstW} v-8" fill="none" stroke="#000" stroke-width="1.8"/><text x="${72+unitW/2}" y="20" text-anchor="middle" font-size="17" font-weight="900">${unit} ml</text><text x="${72+firstW/2}" y="84" text-anchor="middle" font-size="18" font-weight="900">?</text><rect x="72" y="130" width="${p1W}" height="28" fill="#a4d451" stroke="#222" stroke-width="2"/><rect x="${72+p1W}" y="130" width="${p2W}" height="28" fill="#9ec6ea" stroke="#222" stroke-width="2"/><path d="M72 124 v-8 h${p1W} v8" fill="none" stroke="#000" stroke-width="1.8"/><path d="M${72+p1W} 124 v-8 h${p2W} v8" fill="none" stroke="#000" stroke-width="1.8"/><path d="M72 164 v8 h${p1W+p2W} v-8" fill="none" stroke="#000" stroke-width="1.8"/><text x="${72+p1W/2}" y="122" text-anchor="middle" font-size="16" font-weight="900">${firstAmount} ml</text><text x="${72+p1W+p2W/2}" y="122" text-anchor="middle" font-size="16" font-weight="900">${other} ml</text><text x="${72+(p1W+p2W)/2}" y="188" text-anchor="middle" font-size="18" font-weight="900">?</text></svg>`}
 function svgBags(totalBags,given,unit){const left=totalBags-given,unitW=Math.min(42,320/totalBags);let units="";for(let i=0;i<totalBags;i++)units+=`<rect x="${72+i*unitW}" y="38" width="${unitW}" height="28" fill="#ec8eb2" stroke="#222" stroke-width="2"/>`;return `<svg viewBox="0 0 470 140" style="width:100%;max-width:470px;height:140px">${units}<path d="M72 32 v-8 h${unitW} v8" fill="none" stroke="#000" stroke-width="1.8"/><text x="${72+unitW/2}" y="20" text-anchor="middle" font-size="17" font-weight="900">${unit} g</text><path d="M72 72v8h${unitW*given}v-8M${72+unitW*given} 72v8h${unitW*left}v-8" fill="none" stroke="#000" stroke-width="1.8"/><text x="${72+unitW*given/2}" y="102" text-anchor="middle" font-size="17" font-weight="900">moved</text><text x="${72+unitW*given+unitW*left/2}" y="102" text-anchor="middle" font-size="17" font-weight="900">left</text></svg>`}
 function svgTimes(total,factor){const unitW=68;let top="";for(let i=0;i<factor;i++)top+=`<rect x="${120+i*unitW}" y="32" width="${unitW}" height="28" fill="#8ebbe5" stroke="#222" stroke-width="2"/>`;return `<svg viewBox="0 0 520 135" style="width:100%;max-width:520px;height:135px"><text x="48" y="50" font-size="18" font-weight="900">A</text><text x="48" y="98" font-size="18" font-weight="900">B</text>${top}<rect x="120" y="80" width="${unitW}" height="28" fill="#f0ae3c" stroke="#222" stroke-width="2"/><path d="M120 28 v-8 h${unitW*factor} v8" fill="none" stroke="#000" stroke-width="1.8"/><path d="M${120+unitW} 66 v8 h${unitW*(factor-1)} v-8" fill="none" stroke="#000" stroke-width="1.8"/><text x="${120+unitW*factor/2}" y="19" text-anchor="middle" font-size="18" font-weight="900">${total}</text><text x="${120+unitW+(unitW*(factor-1))/2}" y="96" text-anchor="middle" font-size="18" font-weight="900">?</text></svg>`}
-function qDrinkStation(){const total=pick([2000,2500,3000,3200,3600,4000]);const a=pick([200,250,300,350,400,450,500,550,600]),b=pick([225,250,300,350,400,450,500,600,725]);if(a+b>=total)return qDrinkStation();const drank=a+b,left=total-drank;return{type:"Two-step: served and left",title:"How much drink was served and left?",story:`A Sports Fiesta drink cooler held <b>${total} ml</b> of fruit drink. The team served <b>${a} ml</b> during the first break and <b>${b} ml</b> during the second break.<br>(i) How much drink was served altogether?<br>(ii) What volume was left in the cooler?`,render:()=>`<div class="svgWrap">${svgCombineTwo(a,b,"ml")}</div><div class="mathBlock"><div class="sectionTag">(i) Total served</div><div class="eqLine">${input("a1","small")} <span>+</span> ${input("a2","small")} <span>=</span> ${input("a3")}</div><div class="eqLine">The team served ${input("a4")} <span>ml over the two breaks.</span></div><div class="svgWrap">${svgTotalMinusUsed(total,drank,"ml")}</div><div class="sectionTag">(ii) Volume left</div><div class="eqLine">${input("a5")} <span>−</span> ${input("a6")} <span>=</span> ${input("a7")}</div><div class="eqLine">${input("a8")} <span>ml was left.</span></div></div>`,expected:{a1:a,a2:b,a3:drank,a4:drank,a5:total,a6:drank,a7:left,a8:left},fields:["a1","a2","a3","a4","a5","a6","a7","a8"],commutativePairs:[["a1","a2"]],explain:`${a} + ${b} = ${drank}. Then ${total} − ${drank} = ${left}.`}}
-function qPowderPackets(){const packets=pick([2,3,4,5]),each=pick([100,150,200,250,300]);const packed=packets*each,used=pick([100,150,200,250,300,400]),total=packed+used;return{type:"Share remaining powder equally",title:"How much powder went into each team packet?",story:`A helper prepared <b>${total} g</b> of sports drink powder. After setting aside <b>${used} g</b>, the rest was shared equally among <b>${packets}</b> team packets. What mass of powder went into each packet?`,render:()=>`<div class="svgWrap">${svgPackets(total,used,packets,"g")}</div><div class="mathBlock"><div class="sectionTag">Find how much powder remained</div><div class="eqLine">${input("b1")} <span>−</span> ${input("b2")} <span>=</span> ${input("b3")}</div><div class="eqLine">Powder remaining: ${input("b4")} <span>g.</span></div><div class="sectionTag">Find each packet</div><div class="eqLine">${input("b5")} <span>÷</span> ${input("b6","tiny")} <span>=</span> ${input("b7")}</div><div class="eqLine">Each packet contains ${input("b8")} <span>g.</span></div></div>`,expected:{b1:total,b2:used,b3:packed,b4:packed,b5:packed,b6:packets,b7:each,b8:each},fields:["b1","b2","b3","b4","b5","b6","b7","b8"],explain:`${total} − ${used} = ${packed}. Then ${packed} ÷ ${packets} = ${each}.`}}
-function qWaterStation(){const each=pick([200,250,500]),bottles=pick([2,3,4,5]);const first=each*bottles,second=pick([600,750,800,900,1000,1200,1300,1500,1800]),total=first+second;const litres=Math.floor(total/1000),ml=total%1000;return{type:"Units and total in l and ml",title:"How much water is at the station altogether?",story:`Each blue-team bottle holds <b>${each} ml</b> of water. There are <b>${bottles}</b> blue-team bottles. A red-team jug contains another <b>${second} ml</b>. How much water is there altogether? Give your answer in litres and millilitres.`,render:()=>`<div class="svgWrap">${svgUnitsAndTotal(each,bottles,second,first)}</div><div class="mathBlock"><div class="sectionTag">First find the water in the blue bottles</div><div class="eqLine">${bottles} <span>units =</span> ${input("c1","small")} <span>×</span> ${input("c2","small")} <span>=</span> ${input("c3")}</div><div class="eqLine">The blue bottles hold ${input("c4")} <span>ml.</span></div><div class="sectionTag">Then find the total</div><div class="eqLine">${input("c5")} <span>+</span> ${input("c6")} <span>=</span> ${input("c7")}</div><div class="eqLine">${input("c8")} <span>ml =</span> ${input("c9","tiny")} <span>l</span> ${input("c10","small")} <span>ml</span></div><div class="eqLine">The station has ${input("c11","tiny")} <span>l</span> ${input("c12","small")} <span>ml altogether.</span></div></div>`,expected:{c1:bottles,c2:each,c3:first,c4:first,c5:first,c6:second,c7:total,c8:total,c9:litres,c10:ml,c11:litres,c12:ml},fields:["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12"],commutativePairs:[["c1","c2"],["c5","c6"]],explain:`${bottles} × ${each} = ${first}. Then ${first} + ${second} = ${total}, which is ${litres} l ${ml} ml.`}}
-function qMarkerBags(){const totalBags=pick([6,7,8,9]),given=pick([2,3,4,5]);if(given>=totalBags)return qMarkerBags();const leftBags=totalBags-given,unit=pick([200,250,400,500,800]),totalLeft=leftBags*unit;return{type:"Training-marker bags left",title:"What mass of marker bags remained?",story:`A team had <b>${totalBags}</b> bags of soft training markers. Each bag had a mass of <b>${unit} g</b>. <b>${given}</b> bags were moved to another activity station. What was the mass of the bags left?`,render:()=>`<div class="svgWrap">${svgBags(totalBags,given,unit)}</div><div class="mathBlock"><div class="sectionTag">Find how many bags were left</div><div class="eqLine">${input("d1","tiny")} <span>−</span> ${input("d2","tiny")} <span>=</span> ${input("d3","tiny")}</div><div class="eqLine">The team had ${input("d4","tiny")} <span>bags left.</span></div><div class="sectionTag">Find the mass left</div><div class="eqLine">1 unit = ${input("d5")} <span>g</span></div><div class="eqLine">${input("d6","tiny")} <span>units =</span> ${input("d7")} <span>g ×</span> ${input("d8","tiny")} <span>=</span> ${input("d9")} <span>g</span></div><div class="eqLine">The marker bags left had a mass of ${input("d10")} <span>g.</span></div></div>`,expected:{d1:totalBags,d2:given,d3:leftBags,d4:leftBags,d5:unit,d6:leftBags,d7:unit,d8:leftBags,d9:totalLeft,d10:totalLeft},fields:["d1","d2","d3","d4","d5","d6","d7","d8","d9","d10"],commutativePairs:[["d7","d8"]],explain:`${totalBags} − ${given} = ${leftBags}. Then ${leftBags} × ${unit} = ${totalLeft}.`}}
-function qRouteCompare(){const factor=pick([2,3]),unit=pick([100,150,200,250,300]);const total=factor*unit,diffUnits=factor-1,diff=total-unit,unitWord="m";return{type:"Compare two training routes",title:"How much longer is Route A?",story:`Route A is <b>${total} m</b> long. Route A is <b>${factor}</b> times as long as Route B. How much longer is Route A than Route B?`,render:()=>`<div class="svgWrap">${svgTimes(total,factor)}</div><div class="mathBlock"><div class="sectionTag">Find 1 unit</div><div class="eqLine">${factor} <span>units =</span> ${input("e1")} <span>m</span></div><div class="eqLine">1 unit = ${input("e2")} <span>m ÷</span> ${input("e3","tiny")} <span>=</span> ${input("e4")} <span>m</span></div><div class="sectionTag">Find the difference</div><div class="eqLine">${input("e5","tiny")} <span>units =</span> ${input("e6")} <span>m ×</span> ${input("e7","tiny")} <span>=</span> ${input("e8")} <span>m</span></div><div class="eqLine">Route A is ${input("e9")} <span>m longer than Route B.</span></div></div>`,expected:{e1:total,e2:total,e3:factor,e4:unit,e5:diffUnits,e6:unit,e7:diffUnits,e8:diff,e9:diff},fields:["e1","e2","e3","e4","e5","e6","e7","e8","e9"],commutativePairs:[["e6","e7"]],explain:`${factor} units = ${total}. So 1 unit = ${total} ÷ ${factor} = ${unit}. The difference is ${diffUnits} units = ${unit} × ${diffUnits} = ${diff}.`}}
+
+function svgEqualShare(total,parts,unit){
+  const width=300,unitW=width/parts;
+  let divs="";
+  for(let i=1;i<parts;i++){
+    divs+=`<line x1="${70+unitW*i}" y1="48" x2="${70+unitW*i}" y2="78" stroke="#222" stroke-width="1.6"/>`;
+  }
+  return `<svg viewBox="0 0 450 125" style="width:100%;max-width:450px;height:125px">
+    <text x="220" y="18" text-anchor="middle" font-size="17" font-weight="900">${parts} equal parts</text>
+    <path d="M70 38v-8h${width}v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="220" y="29" text-anchor="middle" font-size="16" font-weight="900">${total} ${unit}</text>
+    <rect x="70" y="48" width="${width}" height="30" fill="#efe369" stroke="#222" stroke-width="2"/>
+    ${divs}
+    <path d="M70 84v8h${unitW}v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${70+unitW/2}" y="114" text-anchor="middle" font-size="18" font-weight="900">? ${unit}</text>
+  </svg>`;
+}
+function svgEqualUnits(count,each,unit,label){
+  const width=300,unitW=width/count;
+  let cells="";
+  for(let i=0;i<count;i++){
+    cells+=`<rect x="${70+i*unitW}" y="45" width="${unitW}" height="30" fill="#dbeaf7" stroke="#222" stroke-width="2"/>`;
+  }
+  return `<svg viewBox="0 0 450 125" style="width:100%;max-width:450px;height:125px">
+    ${cells}
+    <path d="M70 39v-8h${unitW}v8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="${70+unitW/2}" y="25" text-anchor="middle" font-size="16" font-weight="900">${each} ${unit}</text>
+    <path d="M70 81v8h${width}v-8" fill="none" stroke="#000" stroke-width="1.8"/>
+    <text x="220" y="112" text-anchor="middle" font-size="17" font-weight="900">${count} ${label} = ? ${unit}</text>
+  </svg>`;
+}
+
+function qDrinkStation(){const total=pick([2000,2500,3000,3200,3600,4000]);const a=pick([200,250,300,350,400,450,500,550,600]),b=pick([225,250,300,350,400,450,500,600,725]);if(a+b>=total)return qDrinkStation();const drank=a+b,left=total-drank;return{type:"Two-step: served and left",title:"How much drink was served and left?",story:`A Sports Fiesta drink cooler held <b>${total} ml</b> of fruit drink. The team served <b>${a} ml</b> during the first break and <b>${b} ml</b> during the second break.<br>(i) How much drink was served altogether?<br>(ii) What volume was left in the cooler?`,render:()=>`<div class="partsGrid">
+<div class="problemPart"><div class="partHeading">(i) Find the total served</div><div class="svgWrap">${svgCombineTwo(a,b,"ml")}</div><div class="mathBlock"><div class="eqLine">${input("a1","small")} <span>+</span> ${input("a2","small")} <span>=</span> ${input("a3")}</div><div class="eqLine">The team served ${input("a4")} <span>ml over the two breaks.</span></div></div></div>
+<div class="problemPart"><div class="partHeading">(ii) Find the volume left</div><div class="svgWrap">${svgTotalMinusUsed(total,drank,"ml")}</div><div class="mathBlock"><div class="eqLine">${input("a5")} <span>−</span> ${input("a6")} <span>=</span> ${input("a7")}</div><div class="eqLine">${input("a8")} <span>ml was left.</span></div></div></div>
+</div>`,expected:{a1:a,a2:b,a3:drank,a4:drank,a5:total,a6:drank,a7:left,a8:left},fields:["a1","a2","a3","a4","a5","a6","a7","a8"],commutativePairs:[["a1","a2"]],explain:`${a} + ${b} = ${drank}. Then ${total} − ${drank} = ${left}.`}}
+function qPowderPackets(){const packets=pick([2,3,4,5]),each=pick([100,150,200,250,300]);const packed=packets*each,used=pick([100,150,200,250,300,400]),total=packed+used;return{type:"Share remaining powder equally",title:"How much powder went into each team packet?",story:`A helper prepared <b>${total} g</b> of sports drink powder. After setting aside <b>${used} g</b>, the rest was shared equally among <b>${packets}</b> team packets. What mass of powder went into each packet?`,render:()=>`<div class="partsGrid">
+<div class="problemPart"><div class="partHeading">(i) Find the powder remaining</div><div class="svgWrap">${svgTotalMinusUsed(total,used,"g")}</div><div class="mathBlock"><div class="eqLine">${input("b1")} <span>−</span> ${input("b2")} <span>=</span> ${input("b3")}</div><div class="eqLine">Powder remaining: ${input("b4")} <span>g.</span></div></div></div>
+<div class="problemPart"><div class="partHeading">(ii) Find each packet</div><div class="svgWrap">${svgEqualShare(packed,packets,"g")}</div><div class="mathBlock"><div class="eqLine">${input("b5")} <span>g ÷</span> ${input("b6","tiny")} <span>=</span> ${input("b7")} <span>g</span></div><div class="eqLine">Each packet contains ${input("b8")} <span>g.</span></div></div></div>
+</div>`,expected:{b1:total,b2:used,b3:packed,b4:packed,b5:packed,b6:packets,b7:each,b8:each},fields:["b1","b2","b3","b4","b5","b6","b7","b8"],explain:`${total} − ${used} = ${packed}. Then ${packed} ÷ ${packets} = ${each}.`}}
+function qWaterStation(){const each=pick([200,250,500]),bottles=pick([2,3,4,5]);const first=each*bottles,second=pick([600,750,800,900,1000,1200,1300,1500,1800]),total=first+second;const litres=Math.floor(total/1000),ml=total%1000;return{type:"Units and total in l and ml",title:"How much water is at the station altogether?",story:`Each blue-team bottle holds <b>${each} ml</b> of water. There are <b>${bottles}</b> blue-team bottles. A red-team jug contains another <b>${second} ml</b>. How much water is there altogether? Give your answer in litres and millilitres.`,render:()=>`<div class="partsGrid">
+<div class="problemPart"><div class="partHeading">(i) Find the water in the blue bottles</div><div class="svgWrap">${svgEqualUnits(bottles,each,"ml","bottles")}</div><div class="mathBlock"><div class="eqLine">${bottles} <span>units =</span> ${input("c1","small")} <span>×</span> ${input("c2","small")} <span>ml =</span> ${input("c3")} <span>ml</span></div><div class="eqLine">The blue bottles hold ${input("c4")} <span>ml.</span></div></div></div>
+<div class="problemPart"><div class="partHeading">(ii) Find the total and convert</div><div class="svgWrap">${svgCombineTwo(first,second,"ml")}</div><div class="mathBlock"><div class="eqLine">${input("c5")} <span>ml +</span> ${input("c6")} <span>ml =</span> ${input("c7")} <span>ml</span></div><div class="eqLine">${input("c8")} <span>ml =</span> ${input("c9","tiny")} <span>l</span> ${input("c10","small")} <span>ml</span></div><div class="eqLine">Altogether: ${input("c11","tiny")} <span>l</span> ${input("c12","small")} <span>ml.</span></div></div></div>
+</div>`,expected:{c1:bottles,c2:each,c3:first,c4:first,c5:first,c6:second,c7:total,c8:total,c9:litres,c10:ml,c11:litres,c12:ml},fields:["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12"],commutativePairs:[["c1","c2"],["c5","c6"]],explain:`${bottles} × ${each} = ${first}. Then ${first} + ${second} = ${total}, which is ${litres} l ${ml} ml.`}}
+function qMarkerBags(){const totalBags=pick([6,7,8,9]),given=pick([2,3,4,5]);if(given>=totalBags)return qMarkerBags();const leftBags=totalBags-given,unit=pick([200,250,400,500,800]),totalLeft=leftBags*unit;return{type:"Training-marker bags left",title:"What mass of marker bags remained?",story:`A team had <b>${totalBags}</b> bags of soft training markers. Each bag had a mass of <b>${unit} g</b>. <b>${given}</b> bags were moved to another activity station. What was the mass of the bags left?`,render:()=>`<div class="partsGrid">
+<div class="problemPart"><div class="partHeading">(i) Find how many bags were left</div><div class="svgWrap">${svgBags(totalBags,given,unit)}</div><div class="mathBlock"><div class="eqLine">${input("d1","tiny")} <span>−</span> ${input("d2","tiny")} <span>=</span> ${input("d3","tiny")}</div><div class="eqLine">The team had ${input("d4","tiny")} <span>bags left.</span></div></div></div>
+<div class="problemPart"><div class="partHeading">(ii) Find the mass left</div><div class="svgWrap">${svgEqualUnits(leftBags,unit,"g","bags")}</div><div class="mathBlock"><div class="eqLine">1 unit = ${input("d5")} <span>g</span></div><div class="eqLine">${input("d6","tiny")} <span>units =</span> ${input("d7")} <span>g ×</span> ${input("d8","tiny")} <span>=</span> ${input("d9")} <span>g</span></div><div class="eqLine">Mass left: ${input("d10")} <span>g.</span></div></div></div>
+</div>`,expected:{d1:totalBags,d2:given,d3:leftBags,d4:leftBags,d5:unit,d6:leftBags,d7:unit,d8:leftBags,d9:totalLeft,d10:totalLeft},fields:["d1","d2","d3","d4","d5","d6","d7","d8","d9","d10"],commutativePairs:[["d7","d8"]],explain:`${totalBags} − ${given} = ${leftBags}. Then ${leftBags} × ${unit} = ${totalLeft}.`}}
+function qRouteCompare(){const factor=pick([2,3]),unit=pick([100,150,200,250,300]);const total=factor*unit,diffUnits=factor-1,diff=total-unit,unitWord="m";return{type:"Compare two training routes",title:"How much longer is Route A?",story:`Route A is <b>${total} m</b> long. Route A is <b>${factor}</b> times as long as Route B. How much longer is Route A than Route B?`,render:()=>`<div class="partsGrid">
+<div class="problemPart"><div class="partHeading">(i) Find 1 unit</div><div class="svgWrap">${svgTimes(total,factor)}</div><div class="mathBlock"><div class="eqLine">${factor} <span>units =</span> ${input("e1")} <span>m</span></div><div class="eqLine">1 unit = ${input("e2")} <span>m ÷</span> ${input("e3","tiny")} <span>=</span> ${input("e4")} <span>m</span></div></div></div>
+<div class="problemPart"><div class="partHeading">(ii) Find the difference</div><div class="svgWrap">${svgEqualUnits(diffUnits,unit,"m","difference units")}</div><div class="mathBlock"><div class="eqLine">${input("e5","tiny")} <span>units =</span> ${input("e6")} <span>m ×</span> ${input("e7","tiny")} <span>=</span> ${input("e8")} <span>m</span></div><div class="eqLine">Route A is ${input("e9")} <span>m longer than Route B.</span></div></div></div>
+</div>`,expected:{e1:total,e2:total,e3:factor,e4:unit,e5:diffUnits,e6:unit,e7:diffUnits,e8:diff,e9:diff},fields:["e1","e2","e3","e4","e5","e6","e7","e8","e9"],commutativePairs:[["e6","e7"]],explain:`${factor} units = ${total}. So 1 unit = ${total} ÷ ${factor} = ${unit}. The difference is ${diffUnits} units = ${unit} × ${diffUnits} = ${diff}.`}}
 function questionKey(q){
   const expected=Object.keys(q.expected||{}).sort().map(k=>`${k}:${q.expected[k]}`).join("|");
   return `${q.type}|${q.story}|${expected}`;
