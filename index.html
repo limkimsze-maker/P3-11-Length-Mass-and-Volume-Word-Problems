@@ -420,6 +420,19 @@ main{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column}
   margin-right:0 !important;
 }
 
+
+/* Allow long answer lines in Practice 11 to wrap neatly instead of being cut off */
+.questionLayout.twoPartTopSplit .partCol .eqLine{
+  flex-wrap:wrap !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:1.2;
+}
+.questionLayout.twoPartTopSplit .partCol .eqLine .answerInput{
+  flex:0 0 auto;
+}
+
 </style>
 <script src="https://cdn.counter.dev/script.js" data-id="825e93b6-ce99-40ef-8bcc-125f13297433" data-utcoffset="8"></script>
 </head>
